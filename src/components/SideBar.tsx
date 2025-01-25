@@ -1,5 +1,6 @@
-"use client"
-import React, { useState, useEffect } from 'react';
+"use client";
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation"; // Import usePathname for Next.js
 
 // Define types for the menu items
 type MenuItem = {
@@ -10,12 +11,12 @@ type MenuItem = {
 type SideBarProps = {
   children: React.ReactNode;
   sidebarMenus: MenuItem[]; // Pass the menu configuration as a prop
-  defaultActiveMenu?: string; // Optional prop to set the default active menu
-  title:string;
+  title: string;
 };
 
-const SideBar = ({ children, sidebarMenus, defaultActiveMenu = 'Faculty',title }: SideBarProps) => {
-  const [activeMenu, setActiveMenu] = useState(defaultActiveMenu);
+const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
+  const pathname = usePathname(); // Get the current URL path
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -28,9 +29,24 @@ const SideBar = ({ children, sidebarMenus, defaultActiveMenu = 'Faculty',title }
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Set the default open and active menu based on the current URL
+  useEffect(() => {
+    if (pathname) {
+      // Find the menu item that matches the current URL
+      for (const menu of sidebarMenus) {
+        const matchingChild = menu.children.find((child) => child.link === pathname);
+        if (matchingChild) {
+          setOpenMenu(menu.title); // Open the parent menu
+          setActiveMenu(menu.title); // Set the active menu
+          break;
+        }
+      }
+    }
+  }, [pathname, sidebarMenus]);
 
   const toggleMenu = (title: string | null) => {
     setOpenMenu((prev) => (prev === title ? null : title));
@@ -51,7 +67,7 @@ const SideBar = ({ children, sidebarMenus, defaultActiveMenu = 'Faculty',title }
         className={`
           fixed md:relative w-64 h-full bg-white shadow-md
           transform transition-transform duration-300
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
           z-40
         `}
       >
@@ -60,7 +76,6 @@ const SideBar = ({ children, sidebarMenus, defaultActiveMenu = 'Faculty',title }
             <img src="/logo.jpg" className="h-40 w-30 p-5" alt="Logo" />
             <p className="pl-5">{title}</p>
           </div>
-          
         </div>
 
         <nav className="mt-4">
@@ -73,11 +88,11 @@ const SideBar = ({ children, sidebarMenus, defaultActiveMenu = 'Faculty',title }
                 }}
                 className={`
                   px-6 py-3 cursor-pointer flex justify-between items-center
-                  ${activeMenu === menu.title ? 'bg-gray-200 font-semibold' : 'hover:bg-gray-100'}
+                  ${activeMenu === menu.title ? "bg-gray-200 font-semibold" : "hover:bg-gray-100"}
                 `}
               >
                 {menu.title}
-                {menu.children.length > 0 && <span>{openMenu === menu.title ? '▼' : '►'}</span>}
+                {menu.children.length > 0 && <span>{openMenu === menu.title ? "▼" : "►"}</span>}
               </div>
               {openMenu === menu.title && menu.children.length > 0 && (
                 <div className="pl-8 bg-gray-50">
@@ -85,7 +100,9 @@ const SideBar = ({ children, sidebarMenus, defaultActiveMenu = 'Faculty',title }
                     <a
                       key={child.name}
                       href={child.link}
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className={`block px-4 py-2 text-sm ${
+                        pathname === child.link ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"
+                      }`}
                     >
                       {child.name}
                     </a>

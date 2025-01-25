@@ -6,23 +6,24 @@
     {
       "title": "Alumni",
       "children": [
+        { "name": "All Alumni", "link": "/dashboard/admin/alumni" },
         { "name": "Alumni Request", "link": "/dashboard/admin/alumni/request" }
+        
         
       ]
     },
     {
       "title": "Faculty",
       "children": [
-        { "name": "Staff Directory", "link": "#staff" },
-        { "name": "Department Listing", "link": "#departments" }
+        { "name": "All Faculty", "link": "/dashboard/admin/faculty" }
       ]
     },
     {
       "title": "Events",
       "children": [
-        { "name": "Upcoming Events", "link": "#upcoming" },
-        { "name": "Past Events", "link": "#past" },
-        { "name": "Event Management", "link": "#management" }
+        { "name": "Upcoming Events", "link": "/dashboard/admin/event/upcoming" },
+        { "name": "Past Events", "link": "/dashboard/admin/event/past-event" },
+        { "name": "Event Request", "link": "/dashboard/admin/event/request" }
       ]
     }
   ]

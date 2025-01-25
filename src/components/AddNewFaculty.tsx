@@ -53,6 +53,7 @@ export default function EditProfileDialog() {
               <Input
                 id="name"
                 name="name"
+                placeholder="Faculty Name"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -64,6 +65,7 @@ export default function EditProfileDialog() {
                 id="email"
                 name="email"
                 type="email"
+                placeholder="Faculty Email"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -75,6 +77,7 @@ export default function EditProfileDialog() {
                 id="phone"
                 name="phone"
                 type="tel"
+                placeholder="Phone Number"
                 value={formData.phone}
                 onChange={handleChange}
                 required
@@ -85,6 +88,7 @@ export default function EditProfileDialog() {
               <Input
                 id="designation"
                 name="designation"
+                placeholder="Faculty Designation"
                 value={formData.designation}
                 onChange={handleChange}
                 required
@@ -95,6 +99,7 @@ export default function EditProfileDialog() {
               <Input
                 id="school"
                 name="school"
+                placeholder="School"
                 value={formData.school}
                 onChange={handleChange}
                 required
@@ -106,6 +111,7 @@ export default function EditProfileDialog() {
                 id="password"
                 name="password"
                 type="password"
+                placeholder="Password..."
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -113,7 +119,7 @@ export default function EditProfileDialog() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" className="">Save Changes</Button>
+            <Button type="submit" className="">Create Faculty</Button>
           </DialogFooter>
         </form>
       </DialogContent>

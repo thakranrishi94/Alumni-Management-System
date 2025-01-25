@@ -1,17 +1,39 @@
-"use client"
-import React, { useState, useEffect } from 'react';
+"use client";
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"; // Import your dialog components
 
 export default function AlumniPage() {
+  const [selectedAlumni, setSelectedAlumni] = useState<any>(null); // State to track the selected alumni
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
+
   const alumni = [
-    { name: 'Marie Johnson', email: 'marie@acme.com', year: 2010, Cno: 1234567890, Course: 'MCA',school:'SOET' },
-    { name: 'Sarah Liu', email: 'sarah@acme.com', year: 2015, Cno: 1234567840, Course: 'MCA',school:'SOET' },
-    { name: 'Alex Grimes', email: 'alex@acme.com', year: 2005, Cno: 1234567890, Course: 'MCA',school:'SOET' },
-    { name: 'Chris Davis', email: 'chris@acme.com', year: 2020, Cno: 1234567820, Course: 'MCA',school:'SOET'},
-    { name: 'Tara Smith', email: 'tara@acme.com', year: 2000, Cno: 1234567870, Course: 'MCA',school:'SOET' },
+    { name: "Marie Johnson", email: "marie@acme.com", year: 2010, Cno: 1234567890, Course: "MCA", school: "SOET" },
+    { name: "Sarah Liu", email: "sarah@acme.com", year: 2015, Cno: 1234567840, Course: "MCA", school: "SOET" },
+    { name: "Alex Grimes", email: "alex@acme.com", year: 2005, Cno: 1234567890, Course: "MCA", school: "SOET" },
+    { name: "Chris Davis", email: "chris@acme.com", year: 2020, Cno: 1234567820, Course: "MCA", school: "SOET" },
+    { name: "Tara Smith", email: "tara@acme.com", year: 2000, Cno: 1234567870, Course: "MCA", school: "SOET" },
   ];
 
+  // Handle row click
+  const handleRowClick = (person:any) => {
+    setSelectedAlumni(person); // Set the selected alumni
+    setIsDialogOpen(true); // Open the dialog
+  };
+
+  // Close the dialog
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedAlumni(null); // Clear the selected alumni
+  };
+
   return (
-    <div className=" bg-gray-100 w-full">
+    <div className="bg-gray-100 w-full">
       {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni</h1>
@@ -41,14 +63,17 @@ export default function AlumniPage() {
             </thead>
             <tbody>
               {alumni.map((person, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr
+                  key={index}
+                  onClick={() => handleRowClick(person)} // Handle row click
+                  className="hover:bg-gray-50 cursor-pointer"
+                >
                   <td className="p-4">{person.name}</td>
                   <td className="p-4">{person.email}</td>
                   <td className="p-4">{person.year}</td>
                   <td className="p-4">{person.Cno}</td>
                   <td className="p-4">{person.Course}</td>
                   <td className="p-4">{person.school}</td>
-                  
                 </tr>
               ))}
             </tbody>
@@ -76,6 +101,40 @@ export default function AlumniPage() {
           </nav>
         </div>
       </main>
+
+      {/* Dialog to Show Alumni Details */}
+      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alumni Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the selected alumni.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedAlumni && (
+            <div className="space-y-4">
+              <div>
+                <strong>Name:</strong> {selectedAlumni.name}
+              </div>
+              <div>
+                <strong>Email:</strong> {selectedAlumni.email}
+              </div>
+              <div>
+                <strong>Graduation Year:</strong> {selectedAlumni.year}
+              </div>
+              <div>
+                <strong>Phone Number:</strong> {selectedAlumni.Cno}
+              </div>
+              <div>
+                <strong>Course:</strong> {selectedAlumni.Course}
+              </div>
+              <div>
+                <strong>School:</strong> {selectedAlumni.school}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
