@@ -1,0 +1,28 @@
+[
+    {
+      "title": "Overview",
+      "children": []
+    },
+    {
+      "title": "Alumni",
+      "children": [
+        { "name": "Alumni Request", "link": "/dashboard/admin/alumni/request" }
+        
+      ]
+    },
+    {
+      "title": "Faculty",
+      "children": [
+        { "name": "Staff Directory", "link": "#staff" },
+        { "name": "Department Listing", "link": "#departments" }
+      ]
+    },
+    {
+      "title": "Events",
+      "children": [
+        { "name": "Upcoming Events", "link": "#upcoming" },
+        { "name": "Past Events", "link": "#past" },
+        { "name": "Event Management", "link": "#management" }
+      ]
+    }
+  ]
