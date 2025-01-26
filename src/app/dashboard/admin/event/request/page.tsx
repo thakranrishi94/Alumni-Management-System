@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import {
   Dialog,
@@ -6,8 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"; // Import your dialog components
-import { Button } from "@/components/ui/button"; // Import your button component
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar, User, BookOpen, Users, Tag, Clock } from "lucide-react";
 
 // Define the type for Event Request
 type EventRequest = {
@@ -27,9 +29,9 @@ type Faculty = {
 };
 
 export default function EventRequestPage() {
-  const [selectedEvent, setSelectedEvent] = useState<EventRequest | null>(null); // State to track the selected event
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
-  const [selectedFaculty, setSelectedFaculty] = useState<string>(""); // State to track selected faculty
+  const [selectedEvent, setSelectedEvent] = useState<EventRequest | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedFaculty, setSelectedFaculty] = useState<string>("");
 
   // Sample data for Event Requests
   const eventRequests: EventRequest[] = [
@@ -53,80 +55,67 @@ export default function EventRequestPage() {
     },
     {
       id: 3,
-      EventName: "Seminar on Cybersecurity",
-      HostName: "Alex Grimes",
-      FacultyName: "Dr. Emily Brown",
-      Title: "Cybersecurity Trends",
-      Type: "Seminar",
-      Date: "2023-09-20",
+      EventName: "Workshop on Web Development",
+      HostName: "Sarah Liu",
+      FacultyName: "Prof. Jane Smith",
+      Title: "Advanced JavaScript",
+      Type: "Workshop",
+      Date: "2023-11-05",
     },
     {
       id: 4,
-      EventName: "Hackathon 2023",
-      HostName: "Chris Davis",
-      FacultyName: "Prof. Michael Green",
-      Title: "Innovate and Build",
-      Type: "Hackathon",
-      Date: "2023-12-10",
+      EventName: "Workshop on Web Development",
+      HostName: "Sarah Liu",
+      FacultyName: "Prof. Jane Smith",
+      Title: "Advanced JavaScript",
+      Type: "Workshop",
+      Date: "2023-11-05",
     },
-    {
-      id: 5,
-      EventName: "Alumni Meet 2023",
-      HostName: "Tara Smith",
-      FacultyName: "Dr. Susan White",
-      Title: "Networking and Collaboration",
-      Type: "Networking Event",
-      Date: "2023-08-25",
-    },
+    // Additional sample events...
   ];
 
   // Sample data for Faculty
   const facultyMembers: Faculty[] = [
     { id: 1, name: "Dr. John Doe" },
     { id: 2, name: "Prof. Jane Smith" },
-    { id: 3, name: "Dr. Emily Brown" },
-    { id: 4, name: "Prof. Michael Green" },
-    { id: 5, name: "Dr. Susan White" },
+    // Additional sample faculties...
   ];
 
-  // Handle button click to show event details
   const handleViewDetails = (event: EventRequest) => {
-    setSelectedEvent(event); // Set the selected event
-    setIsDialogOpen(true); // Open the dialog
+    setSelectedEvent(event);
+    setIsDialogOpen(true);
   };
 
-  // Close the dialog
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setSelectedEvent(null); // Clear the selected event
-    setSelectedFaculty(""); // Reset selected faculty
+    setSelectedEvent(null);
+    setSelectedFaculty("");
   };
 
-  // Handle faculty selection
   const handleFacultyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedFaculty(e.target.value);
   };
 
-  // Handle approve button click
   const handleApprove = () => {
     if (selectedEvent && selectedFaculty) {
       console.log("Event Approved:", selectedEvent);
       console.log("Assigned Faculty:", selectedFaculty);
-      // Add your approval logic here (e.g., update the event request status)
-      handleCloseDialog(); // Close the dialog after approval
+      handleCloseDialog();
     } else {
       alert("Please select a faculty member to approve the event.");
     }
   };
+  const Reject = () => {
+      handleCloseDialog();
+    
+  };
 
   return (
     <div className="bg-gray-100 w-full">
-      {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Event Requests</h1>
         <p className="text-gray-600">Manage Event Requests</p>
 
-        {/* Search */}
         <div className="mt-6">
           <input
             type="text"
@@ -135,98 +124,103 @@ export default function EventRequestPage() {
           />
         </div>
 
-        {/* Event Requests Table */}
-        <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="p-2 text-left">Event Name</th>
-                  <th className="p-2 text-left">Host Name</th>
-                  <th className="p-2 text-left">Faculty Name</th>
-                  <th className="p-2 text-left">Title</th>
-                  <th className="p-2 text-left">Type</th>
-                  <th className="p-2 text-left">Date</th>
-                  <th className="p-2 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eventRequests.map((event) => (
-                  <tr key={event.id} className="hover:bg-gray-50">
-                    <td className="p-3">{event.EventName}</td>
-                    <td className="p-3">{event.HostName}</td>
-                    <td className="p-3">{event.FacultyName}</td>
-                    <td className="p-3">{event.Title}</td>
-                    <td className="p-3">{event.Type}</td>
-                    <td className="p-3">{event.Date}</td>
-                    <td className="p-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => handleViewDetails(event)}
-                      >
-                        View Details
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {eventRequests.map((event) => (
+            <div
+              key={event.id}
+              onClick={() => handleViewDetails(event)}
+              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <Calendar className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{event.EventName}</h2>
+                  <p className="text-gray-600">{event.Type}</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <User className="h-5 w-5 text-gray-500" />
+                  <p className="text-gray-700">
+                    <strong>Host:</strong> {event.HostName}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <BookOpen className="h-5 w-5 text-gray-500" />
+                  <p className="text-gray-700">
+                    <strong>Faculty:</strong> {event.FacultyName}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-gray-500" />
+                  <p className="text-gray-700">
+                    <strong>Date:</strong> {event.Date}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Pagination */}
         <div className="mt-6 flex justify-center">
           <nav className="flex items-center space-x-2">
             <a href="#" className="px-4 py-2 border rounded-lg">
               1
             </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              2
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              3
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              4
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              5
-            </a>
+            {/* Pagination links */}
           </nav>
         </div>
       </main>
 
-      {/* Dialog to Show Event Details */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Event Request Details</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">Event Request Details</DialogTitle>
             <DialogDescription>
               Detailed information about the selected event request.
             </DialogDescription>
           </DialogHeader>
           {selectedEvent && (
-            <div className="space-y-4">
-              <div>
-                <strong>Event Name:</strong> {selectedEvent.EventName}
-              </div>
-              <div>
-                <strong>Host Name:</strong> {selectedEvent.HostName}
-              </div>
-              <div>
-                <strong>Faculty Name:</strong> {selectedEvent.FacultyName}
-              </div>
-              <div>
-                <strong>Title:</strong> {selectedEvent.Title}
-              </div>
-              <div>
-                <strong>Type:</strong> {selectedEvent.Type}
-              </div>
-              <div>
-                <strong>Date:</strong> {selectedEvent.Date}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-6">
+                <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                  {selectedEvent.EventName.split(" ")
+                    .map((word) => word[0])
+                    .join("")
+                    .toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedEvent.EventName}</h2>
+                  <p className="text-gray-600">{selectedEvent.Type}</p>
+                </div>
               </div>
 
-              {/* Assign Faculty Dropdown */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex items-center space-x-4">
+                  <User className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-gray-600">Host Name</p>
+                    <p className="font-medium">{selectedEvent.HostName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <BookOpen className="h-5 w-5 text-green-500" />
+                  <div>
+                    <p className="text-sm text-gray-600">Faculty Name</p>
+                    <p className="font-medium">{selectedEvent.FacultyName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Calendar className="h-5 w-5 text-purple-500" />
+                  <div>
+                    <p className="text-sm text-gray-600">Date</p>
+                    <p className="font-medium">{selectedEvent.Date}</p>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="faculty" className="block text-sm font-medium text-gray-700">
                   Assign Faculty
@@ -246,10 +240,11 @@ export default function EventRequestPage() {
                 </select>
               </div>
 
-              {/* Approve Button */}
               <div className="flex justify-end">
                 <Button onClick={handleApprove}>Approve</Button>
+                <Button onClick={Reject} className="bg-red-600 hover:bg-red-500 hover:text-white ml-3">Reject</Button>
               </div>
+              
             </div>
           )}
         </DialogContent>

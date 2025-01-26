@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"; // Import your dialog components
-import { Search, Filter, Users, Calendar, GraduationCap } from "lucide-react"; // Import icons from a library like lucide-react
+import { Search, Filter, Users, Calendar, GraduationCap, Mail, Phone, User } from "lucide-react"; // Import icons from a library like lucide-react
 
 export default function AlumniPage() {
   const [selectedAlumni, setSelectedAlumni] = useState<any>(null); // State to track the selected alumni
@@ -16,11 +16,11 @@ export default function AlumniPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false); // State to manage sidebar visibility
 
   const alumni = [
-    { name: "Marie Johnson", email: "marie@acme.com", year: 2010, Cno: 1234567890, Course: "MCA", school: "SOET", status: "Active" },
-    { name: "Sarah Liu", email: "sarah@acme.com", year: 2015, Cno: 1234567840, Course: "MCA", school: "SOET", status: "Active" },
-    { name: "Alex Grimes", email: "alex@acme.com", year: 2005, Cno: 1234567890, Course: "MCA", school: "SOET", status: "Inactive" },
-    { name: "Chris Davis", email: "chris@acme.com", year: 2020, Cno: 1234567820, Course: "MCA", school: "SOET", status: "Active" },
-    { name: "Tara Smith", email: "tara@acme.com", year: 2000, Cno: 1234567870, Course: "MCA", school: "SOET", status: "Inactive" },
+    { name: "Marie Johnson", email: "marie@acme.com", year: 2010, Cno: 1234567890, Course: "MCA", school: "SOET", status: "Active", profilePhoto: "/logo.jpg", updated: "3 days ago" },
+    { name: "Sarah Liu", email: "sarah@acme.com", year: 2015, Cno: 1234567840, Course: "MCA", school: "SOET", status: "Active", profilePhoto: "/logo.jpg", updated: "2 weeks ago" },
+    { name: "Alex Grimes", email: "alex@acme.com", year: 2005, Cno: 1234567890, Course: "MCA", school: "SOET", status: "Inactive", profilePhoto: null, updated: "1 month ago" },
+    { name: "Chris Davis", email: "chris@acme.com", year: 2020, Cno: 1234567820, Course: "MCA", school: "SOET", status: "Active", profilePhoto: "/logo.jpg", updated: "2 days ago" },
+    { name: "Tara Smith", email: "tara@acme.com", year: 2000, Cno: 1234567870, Course: "MCA", school: "SOET", status: "Inactive", profilePhoto: null, updated: "1 week ago" },
   ];
 
   // Filter alumni based on search query
@@ -39,14 +39,17 @@ export default function AlumniPage() {
     setIsDialogOpen(true); // Open the dialog
   };
 
-  // Close the dialog
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setSelectedAlumni(null); // Clear the selected alumni
+  // Function to generate initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen w-full">
+    <div className="bg-gray-100 min-h-screen ">
       {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni</h1>
@@ -127,6 +130,7 @@ export default function AlumniPage() {
           <table className="w-full">
             <thead className="bg-gray-200">
               <tr>
+                <th className="p-4 text-left">Profile</th>
                 <th className="p-4 text-left">Name</th>
                 <th className="p-4 text-left">Email</th>
                 <th className="p-4 text-left">Grad Year</th>
@@ -143,6 +147,19 @@ export default function AlumniPage() {
                   onClick={() => handleRowClick(person)} // Handle row click
                   className="hover:bg-gray-50 cursor-pointer"
                 >
+                  <td className="p-4">
+                    {person.profilePhoto ? (
+                      <img
+                        src={person.profilePhoto}
+                        alt={person.name}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                        {getInitials(person.name)}
+                      </div>
+                    )}
+                  </td>
                   <td className="p-4">{person.name}</td>
                   <td className="p-4">{person.email}</td>
                   <td className="p-4">{person.year}</td>
@@ -224,50 +241,86 @@ export default function AlumniPage() {
       )}
 
       {/* Dialog to Show Alumni Details */}
-      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Alumni Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about the selected alumni.
-            </DialogDescription>
+            <DialogTitle className="text-2xl font-bold">Alumni Details</DialogTitle>
+            <DialogDescription>View and manage alumni information</DialogDescription>
           </DialogHeader>
           {selectedAlumni && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                  {selectedAlumni.name[0]}
-                </div>
+            <div className="space-y-6">
+              {/* Profile Section */}
+              <div className="flex items-center space-x-6">
+                {selectedAlumni.profilePhoto ? (
+                  <img
+                    src={selectedAlumni.profilePhoto}
+                    alt={selectedAlumni.name}
+                    className="h-20 w-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                    {getInitials(selectedAlumni.name)}
+                  </div>
+                )}
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">{selectedAlumni.name}</h2>
-                  <p className="text-sm text-gray-600">{selectedAlumni.email}</p>
+                  <h2 className="text-2xl font-bold">{selectedAlumni.name}</h2>
+                  <p className="text-gray-600">{selectedAlumni.email}</p>
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Graduation Year:</span> {selectedAlumni.year}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Phone:</span> {selectedAlumni.Cno}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Course:</span> {selectedAlumni.Course}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">School:</span> {selectedAlumni.school}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Status:</span>{" "}
-                  <span
-                    className={`px-2 py-1 text-sm rounded-full ${
-                      selectedAlumni.status === "Active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {selectedAlumni.status}
-                  </span>
-                </p>
+
+              {/* Details Section */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <Mail className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium">{selectedAlumni.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <Phone className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="font-medium">{selectedAlumni.Cno}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Calendar className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Graduation Year</p>
+                    <p className="font-medium">{selectedAlumni.year}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-yellow-100 rounded-full">
+                    <User className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Status</p>
+                    <p className="font-medium">
+                      <span
+                        className={`px-2 py-1 text-sm rounded-full ${
+                          selectedAlumni.status === "Active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {selectedAlumni.status}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Last Updated Section */}
+              <div className="text-sm text-gray-600">
+                <p>Last updated: {selectedAlumni.updated}</p>
               </div>
             </div>
           )}

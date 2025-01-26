@@ -7,8 +7,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"; // Import your dialog components
+import { Calendar, User, BookOpen, FileText, Tag, Clock } from "lucide-react"; // Import icons
 
-export default function AlumniPage() {
+export default function UpcomingEvents() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null); // State to track the selected event
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
 
@@ -56,7 +57,7 @@ export default function AlumniPage() {
   ];
 
   // Handle row click
-  const handleRowClick = (event:any) => {
+  const handleRowClick = (event: any) => {
     setSelectedEvent(event); // Set the selected event
     setIsDialogOpen(true); // Open the dialog
   };
@@ -78,23 +79,53 @@ export default function AlumniPage() {
         <div className="mt-6">
           <input
             type="text"
-            placeholder="Search alumni by name, email or grad year"
+            placeholder="Search events by name, type, or date"
             className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
           />
         </div>
 
-        {/* Alumni Table */}
-        <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
+        {/* Updated Table Design */}
+        <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-200">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-2 text-left">Event Name</th>
-                  <th className="p-2 text-left">Host Name</th>
-                  <th className="p-2 text-left">Faculty Name</th>
-                  <th className="p-2 text-left">Title</th>
-                  <th className="p-2 text-left">Type</th>
-                  <th className="p-2 text-left">Date</th>
+                  <th className="p-3 text-left text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <span>Event Name</span>
+                    </div>
+                  </th>
+                  <th className="p-3 text-left text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-green-500" />
+                      <span>Host Name</span>
+                    </div>
+                  </th>
+                  <th className="p-3 text-left text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <BookOpen className="h-4 w-4 text-purple-500" />
+                      <span>Faculty Name</span>
+                    </div>
+                  </th>
+                  <th className="p-3 text-left text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-4 w-4 text-yellow-500" />
+                      <span>Title</span>
+                    </div>
+                  </th>
+                  <th className="p-3 text-left text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <Tag className="h-4 w-4 text-red-500" />
+                      <span>Type</span>
+                    </div>
+                  </th>
+                  <th className="p-3 text-left text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-indigo-500" />
+                      <span>Date</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -102,14 +133,28 @@ export default function AlumniPage() {
                   <tr
                     key={index}
                     onClick={() => handleRowClick(event)} // Handle row click
-                    className="hover:bg-gray-50 cursor-pointer" // Add cursor pointer
+                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition-colors cursor-pointer`} // Alternating row colors and hover effect
                   >
-                    <td className="p-3">{event.EventName}</td>
-                    <td className="p-3">{event.HostName}</td>
-                    <td className="p-3">{event.FacultyName}</td>
-                    <td className="p-3">{event.Title}</td>
-                    <td className="p-3">{event.Type}</td>
-                    <td className="p-3">{event.Date}</td>
+                    <td className="p-3 text-gray-700">{event.EventName}</td>
+                    <td className="p-3 text-gray-700">{event.HostName}</td>
+                    <td className="p-3 text-gray-700">{event.FacultyName}</td>
+                    <td className="p-3 text-gray-700">{event.Title}</td>
+                    <td className="p-3 text-gray-700">
+                      <span
+                        className={`px-2 py-1 text-sm rounded-full ${event.Type === "Conference"
+                            ? "bg-blue-100 text-blue-800"
+                            : event.Type === "Workshop"
+                              ? "bg-green-100 text-green-800"
+                              : event.Type === "Seminar"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-yellow-100 text-yellow-800"
+                          }`}
+                      >
+                        {event.Type}
+                      </span>
+                    </td>
+                    <td className="p-3 text-gray-700">{event.Date}</td>
                   </tr>
                 ))}
               </tbody>
@@ -141,32 +186,83 @@ export default function AlumniPage() {
 
       {/* Dialog to Show Event Details */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Event Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about the selected event.
-            </DialogDescription>
+            <DialogTitle className="text-2xl font-bold">Event Details</DialogTitle>
+            <DialogDescription>View and manage event information</DialogDescription>
           </DialogHeader>
           {selectedEvent && (
-            <div className="space-y-4">
-              <div>
-                <strong>Event Name:</strong> {selectedEvent.EventName}
+            <div className="space-y-6">
+              {/* Profile Section */}
+              <div className="flex items-center space-x-6">
+                <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                  {selectedEvent.EventName.split(" ")
+                    .map((word: string) => word[0])
+                    .join("")
+                    .toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedEvent.EventName}</h2>
+                  <p className="text-gray-600">{selectedEvent.Type}</p>
+                </div>
               </div>
-              <div>
-                <strong>Host Name:</strong> {selectedEvent.HostName}
+
+              {/* Details Section */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <User className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Host Name</p>
+                    <p className="font-medium">{selectedEvent.HostName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <BookOpen className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Faculty Name</p>
+                    <p className="font-medium">{selectedEvent.FacultyName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Calendar className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Date</p>
+                    <p className="font-medium">{selectedEvent.Date}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-yellow-100 rounded-full">
+                    <User className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Type</p>
+                    <p className="font-medium">{selectedEvent.Type}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <strong>Faculty Name:</strong> {selectedEvent.FacultyName}
+
+              {/* Additional Details Section */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <BookOpen className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Title</p>
+                    <p className="font-medium">{selectedEvent.Title}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <strong>Title:</strong> {selectedEvent.Title}
-              </div>
-              <div>
-                <strong>Type:</strong> {selectedEvent.Type}
-              </div>
-              <div>
-                <strong>Date:</strong> {selectedEvent.Date}
+
+              {/* Last Updated Section */}
+              <div className="text-sm text-gray-600">
+                <p>Last updated: {selectedEvent.updated}</p>
               </div>
             </div>
           )}

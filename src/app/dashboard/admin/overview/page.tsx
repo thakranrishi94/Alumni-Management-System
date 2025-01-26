@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
 // Define the type for Card Data
 type CardData = {
   title: string;
@@ -8,13 +7,11 @@ type CardData = {
   description: string;
   icon: string; // You can use icons from libraries like react-icons or custom SVGs
 };
-
 export default function OverviewPage() {
   const [alumniScore, setAlumniScore] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
   const [facultyCount, setFacultyCount] = useState(0);
   const [partnerships, setPartnerships] = useState(0);
-
   // Simulate incrementing numbers for the cards
   useEffect(() => {
     const incrementNumbers = () => {
@@ -23,11 +20,9 @@ export default function OverviewPage() {
       if (facultyCount < 300) setFacultyCount((prev) => prev + 10);
       if (partnerships < 50) setPartnerships((prev) => prev + 10);
     };
-
     const interval = setInterval(incrementNumbers, 50); // Adjust speed as needed
     return () => clearInterval(interval);
   }, [alumniScore, eventsCount, facultyCount, partnerships]);
-
   // Card Data
   const cards: CardData[] = [
     {
@@ -67,7 +62,6 @@ export default function OverviewPage() {
       icon: "👩‍🎓", // Replace with an icon or SVG
     },
   ];
-
   return (
     <div className="bg-gray-100 min-h-screen p-8 md-10">
       {/* Page Header */}
@@ -75,7 +69,6 @@ export default function OverviewPage() {
         <h1 className="text-3xl font-bold text-gray-800">Overview</h1>
         <p className="text-gray-600">Key metrics and statistics at a glance</p>
       </div>
-
       {/* Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card, index) => (
@@ -96,7 +89,6 @@ export default function OverviewPage() {
           </div>
         ))}
       </div>
-
       {/* Additional Content */}
       <div className="mt-12 pb-10">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Activities</h2>

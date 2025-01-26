@@ -1,6 +1,10 @@
+// File: src/app/layout.tsx
+
+
+// File: src/components/SideBar.tsx
 "use client";
 import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation"; // Import usePathname for Next.js
+import { usePathname } from "next/navigation";
 
 // Define types for the menu items
 type MenuItem = {
@@ -10,12 +14,12 @@ type MenuItem = {
 
 type SideBarProps = {
   children: React.ReactNode;
-  sidebarMenus: MenuItem[]; // Pass the menu configuration as a prop
+  sidebarMenus: MenuItem[];
   title: string;
 };
 
 const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
-  const pathname = usePathname(); // Get the current URL path
+  const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -40,8 +44,8 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
       for (const menu of sidebarMenus) {
         const matchingChild = menu.children.find((child) => child.link === pathname);
         if (matchingChild) {
-          setOpenMenu(menu.title); // Open the parent menu
-          setActiveMenu(menu.title); // Set the active menu
+          setOpenMenu(menu.title);
+          setActiveMenu(menu.title);
           break;
         }
       }
@@ -53,7 +57,7 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   };
 
   return (
-    <>
+    <div className="flex h-screen overflow-hidden">
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -62,13 +66,13 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
         ☰
       </button>
 
-      {/* Sidebar */}
+      {/* Sidebar - Now fixed width */}
       <aside
         className={`
-          fixed md:relative w-64 h-full bg-white shadow-md
+          w-64 h-full bg-white shadow-md shrink-0
           transform transition-transform duration-300
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
-          z-40
+          z-40 overflow-y-auto
         `}
       >
         <div className="p-6 text-xl font-bold flex justify-between items-center">
@@ -114,6 +118,11 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
         </nav>
       </aside>
 
+      {/* Main content area - now scrollable */}
+      <main className="flex-grow overflow-y-auto">
+        {children}
+      </main>
+
       {/* Backdrop for mobile */}
       {isMobile && isSidebarOpen && (
         <div
@@ -121,9 +130,7 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-
-      {children}
-    </>
+    </div>
   );
 };
 
