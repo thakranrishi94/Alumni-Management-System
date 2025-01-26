@@ -10,11 +10,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <div className="flex w-full h-screen">
           <SideBar title="Admin Portal" sidebarMenus={AdminMenu}>
             {children}
           </SideBar>
-        </div>
       </body>
     </html>
   );
