@@ -10,7 +10,7 @@ import {
 import { Calendar, User, BookOpen, FileText, Tag, Clock } from "lucide-react"; // Import icons
 
 export default function UpcomingEvents() {
-  const [selectedEvent, setSelectedEvent] = useState<any>(null); // State to track the selected event
+  const [selectedEvent, setSelectedEvent] = useState(null); // State to track the selected event
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
 
   const event = [
@@ -57,7 +57,7 @@ export default function UpcomingEvents() {
   ];
 
   // Handle row click
-  const handleRowClick = (event: any) => {
+  const handleRowClick = (event) => {
     setSelectedEvent(event); // Set the selected event
     setIsDialogOpen(true); // Open the dialog
   };

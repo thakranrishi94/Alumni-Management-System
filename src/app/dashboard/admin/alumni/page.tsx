@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image"; // Import the Image component
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,7 @@ import {
 import { Search, Filter, Users, Calendar, GraduationCap, Mail, Phone, User } from "lucide-react"; // Import icons from a library like lucide-react
 
 export default function AlumniPage() {
-  const [selectedAlumni, setSelectedAlumni] = useState<any>(null); // State to track the selected alumni
+  const [selectedAlumni, setSelectedAlumni] = useState(null); // State to track the selected alumni
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
   const [searchQuery, setSearchQuery] = useState<string>(""); // State for search query
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false); // State to manage sidebar visibility
@@ -34,7 +35,7 @@ export default function AlumniPage() {
   );
 
   // Handle row click
-  const handleRowClick = (person: any) => {
+  const handleRowClick = (person) => {
     setSelectedAlumni(person); // Set the selected alumni
     setIsDialogOpen(true); // Open the dialog
   };
@@ -149,10 +150,12 @@ export default function AlumniPage() {
                 >
                   <td className="p-4">
                     {person.profilePhoto ? (
-                      <img
+                      <Image
                         src={person.profilePhoto}
                         alt={person.name}
-                        className="h-10 w-10 rounded-full object-cover"
+                        width={40}
+                        height={40}
+                        className="rounded-full object-cover"
                       />
                     ) : (
                       <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
@@ -252,10 +255,12 @@ export default function AlumniPage() {
               {/* Profile Section */}
               <div className="flex items-center space-x-6">
                 {selectedAlumni.profilePhoto ? (
-                  <img
+                  <Image
                     src={selectedAlumni.profilePhoto}
                     alt={selectedAlumni.name}
-                    className="h-20 w-20 rounded-full object-cover"
+                    width={80}
+                    height={80}
+                    className="rounded-full object-cover"
                   />
                 ) : (
                   <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { CiEdit } from "react-icons/ci";
-import { Users, Calendar, GraduationCap, Mail, Phone, User } from "lucide-react";
+import { Users, GraduationCap, Mail, Phone, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import AddNewFaculty from "@/components/AddNewFaculty";
 import { Search} from "lucide-react";
 export default function FacultyPage() {
-  const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -74,7 +74,7 @@ export default function FacultyPage() {
   ];
 
   // Handle edit button click
-  const handleEditClick = (person: any) => {
+  const handleEditClick = (person) => {
     setSelectedFaculty(person);
     setIsDialogOpen(true);
   };

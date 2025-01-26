@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image"; // Import the Image component
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -10,7 +11,7 @@ export default function SignupPage() {
     yearOfGraduation: "",
     email: "",
     password: "",
-    Cpassword: ""
+    Cpassword: "",
   });
 
   const handleChange = (e) => {
@@ -29,7 +30,13 @@ export default function SignupPage() {
       {/* Header Section */}
       <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
         <div className="flex items-center gap-4">
-          <img src="/logo.jpg" alt="logo" className="h-10 w-10 rounded" />
+          <Image
+            src="/logo.jpg"
+            alt="logo"
+            width={40} // Set the width
+            height={40} // Set the height
+            className="h-10 w-10 rounded"
+          />
           <h2 className="text-lg font-bold text-gray-900">KR Mangalam Alumni</h2>
         </div>
         <nav className="hidden md:flex gap-6">
@@ -63,15 +70,15 @@ export default function SignupPage() {
       <main className="flex flex-col md:flex-row py-10 px-4 md:px-20 gap-8 justify-center items-center">
         {/* Left Section: Image */}
         <div
-  className="hidden md:flex flex-shrink-0 w-full max-w-md bg-cover bg-center rounded-lg "
-  style={{
-    backgroundImage:
-      "linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)), url('krmu.jpg')",
-    height: '500px', // Set a fixed height
-    width: '100%', // Ensure it takes up full width
-    maxWidth: '500px', // Optional: set a maximum width for the image container
-  }}
-></div>
+          className="hidden md:flex flex-shrink-0 w-full max-w-md bg-cover bg-center rounded-lg"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)), url('krmu.jpg')",
+            height: "500px", // Set a fixed height
+            width: "100%", // Ensure it takes up full width
+            maxWidth: "500px", // Optional: set a maximum width for the image container
+          }}
+        ></div>
 
         {/* Right Section: Form */}
         <div className="flex flex-1 justify-center items-center p-6">
@@ -162,7 +169,6 @@ export default function SignupPage() {
                         {2013 + i}
                       </option>
                     ))}
-
                   </select>
                 </div>
                 <div>
@@ -229,11 +235,23 @@ export default function SignupPage() {
         <div className="container mx-auto flex flex-col items-center">
           {/* Social Media Icons */}
           <div className="flex space-x-4 mb-4">
-            <a href="https://www.linkedin.com/in/krmuniv/" className="bg-white rounded-full px-3 p-2">
+            <a
+              href="https://www.linkedin.com/in/krmuniv/"
+              className="bg-white rounded-full px-3 p-2"
+            >
               <span className="text-black font-bold">in</span>
             </a>
-            <a href="https://www.youtube.com/@KRMangalamUniversity" className="bg-white rounded-full px-2 p-2">
-              <img src="/youtube.png" alt="YouTube" className="h-6 w-6" />
+            <a
+              href="https://www.youtube.com/@KRMangalamUniversity"
+              className="bg-white rounded-full px-2 p-2"
+            >
+              <Image
+                src="/youtube.png"
+                alt="YouTube"
+                width={24} // Set the width
+                height={24} // Set the height
+                className="h-6 w-6"
+              />
             </a>
           </div>
           {/* Links */}

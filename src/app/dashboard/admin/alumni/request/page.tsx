@@ -1,10 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import { Search, Check, X, Clock, Mail, Phone, Calendar, User } from "lucide-react"; // Import icons from a library like lucide-react
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"; // Import shadcn components
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"; // Import shadcn components
+import Image from "next/image"; // Import the Image component
+
 export default function AlumniRequest() {
   const [searchQuery, setSearchQuery] = useState<string>(""); // State for search query
-  const [selectedAlumni, setSelectedAlumni] = useState<any>(null); // State to store selected alumni
+  const [selectedAlumni, setSelectedAlumni] = useState(null); // State to store selected alumni
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to control dialog visibility
   const alumni = [
     { name: "Marie Johnson", email: "marie@acme.com", year: 2010, Cno: 1234567890, updated: "3 days ago", status: "Pending", profilePhoto: null },
@@ -29,7 +31,7 @@ export default function AlumniRequest() {
       .toUpperCase();
   };
   // Function to handle row click
-  const handleRowClick = (person: any) => {
+  const handleRowClick = (person) => {
     setSelectedAlumni(person); // Set the selected alumni
     setIsDialogOpen(true); // Open the dialog
   };
@@ -114,9 +116,11 @@ export default function AlumniRequest() {
                 >
                   <td className="p-4">
                     {person.profilePhoto ? (
-                      <img
+                      <Image
                         src={person.profilePhoto}
                         alt={person.name}
+                        width={40} // Set the width
+                        height={40} // Set the height
                         className="h-10 w-10 rounded-full object-cover"
                       />
                     ) : (
@@ -180,9 +184,11 @@ export default function AlumniRequest() {
               {/* Profile Section */}
               <div className="flex items-center space-x-6">
                 {selectedAlumni.profilePhoto ? (
-                  <img
+                  <Image
                     src={selectedAlumni.profilePhoto}
                     alt={selectedAlumni.name}
+                    width={80} // Set the width
+                    height={80} // Set the height
                     className="h-20 w-20 rounded-full object-cover"
                   />
                 ) : (

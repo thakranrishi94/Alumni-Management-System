@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, BookOpen, Users, Tag, Clock } from "lucide-react";
+import { Calendar, User, BookOpen, Clock } from "lucide-react";
 
 // Define the type for Event Request
 type EventRequest = {
