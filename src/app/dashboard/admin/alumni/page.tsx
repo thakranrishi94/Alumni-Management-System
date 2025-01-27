@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"; // Import your dialog components
-import { Search, Filter, Users, Calendar, GraduationCap, Mail, Phone, User } from "lucide-react"; // Import icons from a library like lucide-react
+import { Search, Users, Calendar, GraduationCap, Mail, Phone, User } from "lucide-react"; // Import icons from a library like lucide-react
 
 export default function AlumniPage() {
   const [selectedAlumni, setSelectedAlumni] = useState(null); // State to track the selected alumni
@@ -105,8 +105,8 @@ export default function AlumniPage() {
         </div>
 
         {/* Search and Filter */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="relative flex-1 max-w-md">
+        <div className="mt-6 flex items-center w-full justify-between">
+          <div className="relative flex-1 w-full ">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" /> {/* Search icon */}
             </div>
@@ -118,12 +118,7 @@ export default function AlumniPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="ml-4 p-3 border rounded-lg shadow-sm hover:bg-gray-100"
-          >
-            <Filter className="h-5 w-5 text-gray-600" /> {/* Filter icon */}
-          </button>
+          
         </div>
 
         {/* Alumni Table */}

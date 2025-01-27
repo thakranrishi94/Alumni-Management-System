@@ -1,28 +1,58 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image"; // Import the Image component
+import Image from "next/image";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CheckCircle } from "lucide-react"; // For the success icon
+import { useRouter } from "next/navigation"; // For navigation
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
+    phoneNumber: "",
     course: "",
     school: "",
-    yearOfJoining: "",
-    yearOfGraduation: "",
-    email: "",
+    currentOrganization: "",
+    designation: "",
+    skills: "",
+    image: null, // For image upload
     password: "",
-    Cpassword: "",
+    confirmPassword: "",
   });
 
+  const [passwordError, setPasswordError] = useState(""); // State for password mismatch error
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // State for success popup
+  const router = useRouter(); // Initialize the router
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      setFormData({ ...formData, [name]: files[0] }); // Handle file upload
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Check if passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    } else {
+      setPasswordError("");
+    }
+
     console.log("Form Data Submitted:", formData);
-    // Add form submission logic here
+
+    // Simulate form submission success
+    setShowSuccessPopup(true);
+  };
+
+  const handleOkButtonClick = () => {
+    setShowSuccessPopup(false); // Close the popup
+    router.push("/"); // Redirect to the home page
   };
 
   return (
@@ -33,8 +63,8 @@ export default function SignupPage() {
           <Image
             src="/logo.jpg"
             alt="logo"
-            width={40} // Set the width
-            height={40} // Set the height
+            width={40}
+            height={40}
             className="h-10 w-10 rounded"
           />
           <h2 className="text-lg font-bold text-gray-900">KR Mangalam Alumni</h2>
@@ -74,15 +104,15 @@ export default function SignupPage() {
           style={{
             backgroundImage:
               "linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.4)), url('krmu.jpg')",
-            height: "500px", // Set a fixed height
-            width: "100%", // Ensure it takes up full width
-            maxWidth: "500px", // Optional: set a maximum width for the image container
+            height: "500px",
+            width: "100%",
+            maxWidth: "500px",
           }}
         ></div>
 
         {/* Right Section: Form */}
         <div className="flex flex-1 justify-center items-center p-6">
-          <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-md">
+          <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-center mb-4">
               Add your Alumni details in - K.R. Mangalam University
             </h2>
@@ -90,9 +120,11 @@ export default function SignupPage() {
               Fields marked * are mandatory
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Three-column grid layout */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block font-medium mb-1">
+                  <label htmlFor="name" className="block font-medium text-gray-600 mb-1">
                     Name *
                   </label>
                   <input
@@ -106,8 +138,10 @@ export default function SignupPage() {
                     required
                   />
                 </div>
+
+                {/* Email */}
                 <div>
-                  <label htmlFor="name" className="block font-medium mb-1">
+                  <label htmlFor="email" className="block text-gray-600  font-medium mb-1">
                     Email *
                   </label>
                   <input
@@ -121,8 +155,27 @@ export default function SignupPage() {
                     required
                   />
                 </div>
+
+                {/* Phone Number */}
                 <div>
-                  <label htmlFor="course" className="block font-medium mb-1">
+                  <label htmlFor="phoneNumber" className="block font-medium mb-1 text-gray-600 ">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Phone Number"
+                    required
+                  />
+                </div>
+
+                {/* Course */}
+                <div>
+                  <label htmlFor="course" className="block font-medium mb-1 text-gray-600 ">
                     Course *
                   </label>
                   <input
@@ -136,8 +189,10 @@ export default function SignupPage() {
                     required
                   />
                 </div>
+
+                {/* School */}
                 <div>
-                  <label htmlFor="house" className="block font-medium mb-1">
+                  <label htmlFor="school" className="block font-medium mb-1 text-gray-600 ">
                     School *
                   </label>
                   <input
@@ -151,48 +206,61 @@ export default function SignupPage() {
                     required
                   />
                 </div>
+
+                {/* Current Organization */}
                 <div>
-                  <label htmlFor="yearOfJoining" className="block font-medium mb-1">
-                    Year of Joining *
+                  <label htmlFor="currentOrganization" className="block font-medium mb-1 text-gray-600 ">
+                    Current Organization *
                   </label>
-                  <select
-                    id="yearOfJoining"
-                    name="yearOfJoining"
-                    value={formData.yearOfJoining}
+                  <input
+                    type="text"
+                    id="currentOrganization"
+                    name="currentOrganization"
+                    value={formData.currentOrganization}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
+                    placeholder="Current Organization"
                     required
-                  >
-                    <option value="">Select Year of Joining</option>
-                    {[...Array(new Date().getFullYear() - 2013 + 1)].map((_, i) => (
-                      <option key={i} value={2013 + i}>
-                        {2013 + i}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
+
+                {/* Designation */}
                 <div>
-                  <label htmlFor="yearOfGraduation" className="block font-medium mb-1">
-                    Year of Graduation *
+                  <label htmlFor="designation" className="block font-medium mb-1 text-gray-600 ">
+                    Designation *
                   </label>
-                  <select
-                    id="yearOfGraduation"
-                    name="yearOfGraduation"
-                    value={formData.yearOfGraduation}
+                  <input
+                    type="text"
+                    id="designation"
+                    name="designation"
+                    value={formData.designation}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
+                    placeholder="Designation"
                     required
-                  >
-                    <option value="">Select Year of Graduation</option>
-                    {[...Array(30)].map((_, i) => (
-                      <option key={i} value={2013 + i}>
-                        {2013 + i}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
+
+                {/* Skills */}
                 <div>
-                  <label htmlFor="password" className="block font-medium mb-1">
+                  <label htmlFor="skills" className="block font-medium mb-1 text-gray-600 ">
+                    Skills *
+                  </label>
+                  <input
+                    type="text"
+                    id="skills"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Skills (comma separated)"
+                    required
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label htmlFor="password" className="block font-medium mb-1 text-gray-600 ">
                     Password *
                   </label>
                   <input
@@ -202,27 +270,53 @@ export default function SignupPage() {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
-                    placeholder="Password..."
+                    placeholder="Password"
                     required
                   />
                 </div>
+
+                {/* Confirm Password */}
                 <div>
-                  <label htmlFor="password" className="block font-medium mb-1">
+                  <label htmlFor="confirmPassword" className="block font-medium mb-1 text-gray-600 ">
                     Confirm Password *
                   </label>
                   <input
                     type="password"
-                    id="Cpassword"
-                    name="Cpassword"
-                    value={formData.Cpassword}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
-                    placeholder="Confirm Password..."
+                    placeholder="Confirm Password"
+                    required
+                  />
+                  {passwordError && (
+                    <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+                  )}
+                </div>
+
+                {/* Image Upload */}
+                <div>
+                  <label htmlFor="image" className="block w-full font-medium mb-1 text-gray-600 ">
+                    Profile Image *
+                  </label>
+                  <input
+                    type="file"
+                    id="image"
+                    name="image"
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md text-gray-600"
+                    accept="image/*"
                     required
                   />
                 </div>
               </div>
-              <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md">
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 rounded-md"
+              >
                 Join Alumni Network
               </button>
             </form>
@@ -248,8 +342,8 @@ export default function SignupPage() {
               <Image
                 src="/youtube.png"
                 alt="YouTube"
-                width={24} // Set the width
-                height={24} // Set the height
+                width={24}
+                height={24}
                 className="h-6 w-6"
               />
             </a>
@@ -282,6 +376,29 @@ export default function SignupPage() {
           </nav>
         </div>
       </footer>
+
+      {/* Success Popup */}
+      <Dialog open={showSuccessPopup} onOpenChange={setShowSuccessPopup}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-6 w-6 text-green-500" />
+              Success!
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">
+            You will receive a confirmation message on your email after approval by KRMU admin.
+          </p>
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleOkButtonClick}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              OK
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

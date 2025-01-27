@@ -77,21 +77,24 @@ export default function AlumniRequest() {
           </div>
         </div>
         {/* Statistics Cards */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
           {/* ... (same as before) ... */}
         </div>
         {/* Search */}
-        <div className="mt-6 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" /> {/* Search icon */}
+        <div className="mt-6 flex items-center justify-between">
+          <div className="relative flex-1 w-full">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" /> {/* Search icon */}
+            </div>
+            <input
+              type="text"
+              placeholder="Search alumni by name, email, grad year, phone, course, or school"
+              className="w-full pl-10 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Search alumni by name, email, grad year, or phone"
-            className="w-full pl-10 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+         
         </div>
         {/* Alumni Table */}
         <div className="mt-8 bg-white rounded-lg shadow-md overflow-hidden">

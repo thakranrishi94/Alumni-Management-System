@@ -1,0 +1,20 @@
+  [
+    {
+      "title": "Overview",
+      "children": []
+    },
+    
+    {
+      "title": "Events",
+      "children": [
+        { "name": "Upcoming Events", "link": "/dashboard/alumni/event/upcoming" },
+        { "name": "Past Events", "link": "/dashboard/alumni/event/past-event" },
+        { "name": "Event Request", "link": "/dashboard/admin/event/request" }
+      ]
+    },{
+      "title": "Certificates",
+      "children": [
+        { "name": "All Faculty", "link": "/dashboard/admin/certificates" }
+      ]
+    }
+  ]
