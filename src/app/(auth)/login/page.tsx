@@ -5,20 +5,24 @@ import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import axios, { Axios } from 'axios';
 import Cookies from "js-cookie";
-import 'react-toastify/dist/ReactToastify.css';
 import { useToast } from "@/hooks/use-toast";
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
-  const toast=useToast();
+  const {toast} = useToast();
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.toast({title:"Invalid Credentials",
-      variant:"destructive",
-      description:"Invalid Credentials"     
-    })
+    if(!email || !password){
+      toast({
+        title:"Please fill in all fields",
+        description: "Please fill in all fields",
+        variant:"destructive",     
+      })
+      return;
+    }
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
@@ -42,7 +46,7 @@ export default function LoginPage() {
         }
       }
     } catch (error) {
-      toast.toast({title:"Invalid Credentials",
+      toast({title:"Invalid Credentials",
         variant:"destructive",     
       })
     }
@@ -117,6 +121,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@gmail.com"
                   value={email}
+                  required
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1 p-2 block w-full rounded-md  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                 />
@@ -128,6 +133,7 @@ export default function LoginPage() {
                 <input
                   type="password"
                   value={password}
+                  required
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••"
                   className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
