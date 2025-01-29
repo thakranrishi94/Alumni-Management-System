@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"; // Import your dialog components
 import { Calendar, User, BookOpen, FileText, Tag, Clock } from "lucide-react"; // Import icons
 
-export default function UpcomingEvents() {
+export default function PastEvent() {
   const [selectedEvent, setSelectedEvent] = useState(null); // State to track the selected event
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
 
@@ -53,7 +53,6 @@ export default function UpcomingEvents() {
       Title: "Networking and Collaboration",
       Type: "Networking Event",
       Date: "2023-08-25",
-      MeetLink:"",
     },
   ];
 
@@ -89,7 +88,7 @@ export default function UpcomingEvents() {
         <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100">
+              <thead className="bg-gray-200">
                 <tr>
                   <th className="p-3 text-left text-gray-700 font-semibold">
                     <div className="flex items-center space-x-2">

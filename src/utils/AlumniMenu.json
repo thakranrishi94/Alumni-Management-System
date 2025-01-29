@@ -8,13 +8,12 @@
       "title": "Events",
       "children": [
         { "name": "Upcoming Events", "link": "/dashboard/alumni/event/upcoming" },
-        { "name": "Past Events", "link": "/dashboard/alumni/event/past-event" },
-        { "name": "Event Request", "link": "/dashboard/admin/event/request" }
+        { "name": "Past Events", "link": "/dashboard/alumni/event/past-event" }
       ]
     },{
       "title": "Certificates",
       "children": [
-        { "name": "All Faculty", "link": "/dashboard/admin/certificates" }
+        { "name": "All Certificates", "link": "/dashboard/alumni/certificates" }
       ]
     }
   ]

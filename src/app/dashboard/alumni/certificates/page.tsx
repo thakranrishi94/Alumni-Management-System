@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import {
   Dialog,
@@ -6,12 +7,28 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"; // Import your dialog components
-import { Calendar, User, BookOpen, FileText, Tag, Clock } from "lucide-react"; // Import icons
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { Calendar, User, BookOpen, FileText, Tag, Clock, Plus, CheckCircle, Link,Download } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 export default function UpcomingEvents() {
-  const [selectedEvent, setSelectedEvent] = useState(null); // State to track the selected event
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState<boolean>(false);
+  const [eventName, setEventName] = useState("");
+  const [title, setTitle] = useState("");
+  const [eventType, setEventType] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [prerequisite, setPrerequisite] = useState("");
+  const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState<boolean>(false);
 
   const event = [
     {
@@ -21,6 +38,8 @@ export default function UpcomingEvents() {
       Title: "Future of AI",
       Type: "Conference",
       Date: "2023-10-15",
+      MeetLink:"https://meet.google.com/frg-idkk-hcv",
+      certificateUrl: "/ams.pdf",
     },
     {
       EventName: "Workshop on Web Development",
@@ -29,6 +48,8 @@ export default function UpcomingEvents() {
       Title: "Advanced JavaScript",
       Type: "Workshop",
       Date: "2023-11-05",
+      MeetLink:"",
+      certificateUrl: "/ams.pdf",
     },
     {
       EventName: "Seminar on Cybersecurity",
@@ -37,6 +58,8 @@ export default function UpcomingEvents() {
       Title: "Cybersecurity Trends",
       Type: "Seminar",
       Date: "2023-09-20",
+      MeetLink:"",
+      certificateUrl: "/ams.pdf",
     },
     {
       EventName: "Hackathon 2023",
@@ -45,6 +68,8 @@ export default function UpcomingEvents() {
       Title: "Innovate and Build",
       Type: "Hackathon",
       Date: "2023-12-10",
+      MeetLink:"https://meet.google.com/hes-idkk-fde",
+      certificateUrl: "/ams.pdf",
     },
     {
       EventName: "Alumni Meet 2023",
@@ -53,117 +78,86 @@ export default function UpcomingEvents() {
       Title: "Networking and Collaboration",
       Type: "Networking Event",
       Date: "2023-08-25",
-      MeetLink:"",
+      MeetLink:"https://meet.google.com/hes-idkk-hkj",
+      certificateUrl: "/ams.pdf",
     },
   ];
-
-  // Handle row click
   const handleRowClick = (event) => {
-    setSelectedEvent(event); // Set the selected event
-    setIsDialogOpen(true); // Open the dialog
+    setSelectedEvent(event);
+    setIsDialogOpen(true);
   };
 
-  // Close the dialog
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setSelectedEvent(null); // Clear the selected event
+    setSelectedEvent(null);
   };
-
+  const handleCloseCreateEventDialog = () => {
+    setIsCreateEventDialogOpen(false);
+    setEventName("");
+    setTitle("");
+    setEventType("");
+    setSelectedDate(undefined);
+    setPrerequisite("");
+  };
   return (
     <div className="bg-gray-100 w-full">
-      {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
-        <h1 className="text-2xl font-bold ml-5 md:ml-0">Upcoming Events</h1>
-        <p className="text-gray-600">Manage Events</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Event Certification</h1>
+            <p className="text-gray-600">Check your certificate and Download</p>
+          </div>
+         
+        </div>
 
-        {/* Search */}
         <div className="mt-6">
-          <input
+          <Input
             type="text"
             placeholder="Search events by name, type, or date"
             className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
           />
         </div>
 
-        {/* Updated Table Design */}
-        <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-blue-500" />
-                      <span>Event Name</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-green-500" />
-                      <span>Host Name</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <BookOpen className="h-4 w-4 text-purple-500" />
-                      <span>Faculty Name</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-yellow-500" />
-                      <span>Title</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <Tag className="h-4 w-4 text-red-500" />
-                      <span>Type</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-indigo-500" />
-                      <span>Date</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {event.map((event, index) => (
-                  <tr
-                    key={index}
-                    onClick={() => handleRowClick(event)} // Handle row click
-                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-gray-100 transition-colors cursor-pointer`} // Alternating row colors and hover effect
-                  >
-                    <td className="p-3 text-gray-700">{event.EventName}</td>
-                    <td className="p-3 text-gray-700">{event.HostName}</td>
-                    <td className="p-3 text-gray-700">{event.FacultyName}</td>
-                    <td className="p-3 text-gray-700">{event.Title}</td>
-                    <td className="p-3 text-gray-700">
-                      <span
-                        className={`px-2 py-1 text-sm rounded-full ${event.Type === "Conference"
-                            ? "bg-blue-100 text-blue-800"
-                            : event.Type === "Workshop"
-                              ? "bg-green-100 text-green-800"
-                              : event.Type === "Seminar"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }`}
-                      >
-                        {event.Type}
-                      </span>
-                    </td>
-                    <td className="p-3 text-gray-700">{event.Date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {event.map((event, index) => (
+            <div
+              key={index}
+              onClick={() => handleRowClick(event)}
+              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <Calendar className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{event.EventName}</h2>
+                  <p className="text-gray-600">{event.Type}</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <User className="h-5 w-5 text-gray-500" />
+                  <p className="text-gray-700">
+                    <strong>Host:</strong> {event.HostName}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <BookOpen className="h-5 w-5 text-gray-500" />
+                  <p className="text-gray-700">
+                    <strong>Faculty:</strong> {event.FacultyName}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-gray-500" />
+                  <p className="text-gray-700">
+                    <strong>Date:</strong> {event.Date}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Pagination */}
         <div className="mt-6 flex justify-center">
           <nav className="flex items-center space-x-2">
             <a href="#" className="px-4 py-2 border rounded-lg">
@@ -185,7 +179,6 @@ export default function UpcomingEvents() {
         </div>
       </main>
 
-      {/* Dialog to Show Event Details */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -194,7 +187,6 @@ export default function UpcomingEvents() {
           </DialogHeader>
           {selectedEvent && (
             <div className="space-y-6">
-              {/* Profile Section */}
               <div className="flex items-center space-x-6">
                 <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
                   {selectedEvent.EventName.split(" ")
@@ -208,7 +200,6 @@ export default function UpcomingEvents() {
                 </div>
               </div>
 
-              {/* Details Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="flex items-center space-x-4">
                   <div className="p-3 bg-blue-100 rounded-full">
@@ -246,9 +237,7 @@ export default function UpcomingEvents() {
                     <p className="font-medium">{selectedEvent.Type}</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Additional Details Section */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
                   <div className="p-3 bg-purple-100 rounded-full">
@@ -260,10 +249,25 @@ export default function UpcomingEvents() {
                   </div>
                 </div>
               </div>
-
-              {/* Last Updated Section */}
-              <div className="text-sm text-gray-600">
-                <p>Last updated: {selectedEvent.updated}</p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Link   className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Meeting Link</p>
+                    <p className="font-medium">{selectedEvent.MeetLink? selectedEvent.MeetLink : "Not Assigned"}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                <a href={selectedEvent.certificateUrl} download>
+                  <Button>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Certificate
+                  </Button>
+                </a>
+              </div>
+              </div>
               </div>
             </div>
           )}

@@ -1,7 +1,52 @@
+"use client"
 import React from "react";
-import Image from "next/image"; // Import the Image component
-
+import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from 'next/navigation';
+import axios, { Axios } from 'axios';
+import Cookies from "js-cookie";
+import 'react-toastify/dist/ReactToastify.css';
+import { useToast } from "@/hooks/use-toast";
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const router = useRouter();
+  const toast=useToast();
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    toast.toast({title:"Invalid Credentials",
+      variant:"destructive",
+      description:"Invalid Credentials"     
+    })
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        { email, password }
+        
+      );
+      if (response.data.sucess) {
+        Cookies.set('userRole', response.data.role, { expires: '1h' });
+        switch (response.data.role) {
+          case 'admin':
+            router.push('/dashboard/admin/overview');
+            break;
+          case 'alumni':
+            router.push('/dashboard/alumni/overview');
+            break;
+          case 'faculty':
+            router.push('/dashboard/faculty/overview');
+            break;
+          default:
+            router.push('/')
+        }
+      }
+    } catch (error) {
+      toast.toast({title:"Invalid Credentials",
+        variant:"destructive",     
+      })
+    }
+  };
   return (
     <div className="relative flex min-h-screen flex-col bg-white overflow-x-hidden justify-center">
       {/* Header Section */}
@@ -48,6 +93,7 @@ export default function LoginPage() {
       {/* Main Section */}
       <main className="flex flex-1 flex-col md:flex-row py-20">
         {/* Left Section: Image */}
+       
         <div
           className="hidden md:flex md:flex-1 bg-cover bg-center ml-10 h-150 w-full md:w-2/3 lg:w-1/2 rounded-lg"
           style={{
@@ -57,8 +103,10 @@ export default function LoginPage() {
         ></div>
 
         {/* Right Section: Content */}
+        
         <div className="flex flex-col flex-1 px-6 py-8 sm:px-10 lg:px-20">
           <div className="max-w-md w-4/5 mx-auto">
+          <form onSubmit={handleSubmit}>
             <h1 className="text-2xl font-bold text-gray-900 text-center">
               Sign in
             </h1>
@@ -67,8 +115,10 @@ export default function LoginPage() {
                 <span className="text-gray-700">Email</span>
                 <input
                   type="email"
-                  placeholder="you@stanford.edu"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                  placeholder="you@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1 p-2 block w-full rounded-md  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                 />
               </label>
             </div>
@@ -77,8 +127,10 @@ export default function LoginPage() {
                 <span className="text-gray-700">Password</span>
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                  className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                 />
               </label>
             </div>
@@ -92,7 +144,7 @@ export default function LoginPage() {
                 Remember me
               </label>
             </div>
-            <button className="w-full mt-6 bg-blue-600 text-white py-2 rounded-md font-bold hover:bg-blue-700">
+            <button type="submit" className="w-full mt-6 bg-blue-600 text-white py-2 rounded-md font-bold hover:bg-blue-700">
               Sign in
             </button>
             <div className="mt-6 text-center text-sm text-gray-700">
@@ -103,8 +155,10 @@ export default function LoginPage() {
                 </a>
               </p>
             </div>
+            </form>
           </div>
         </div>
+        
       </main>
 
       {/* Footer Section */}
