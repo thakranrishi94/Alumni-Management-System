@@ -26,19 +26,21 @@ export default function LoginPage() {
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        { email, password }
-        
+        { email, password },
+        {headers:{
+          "Authorization":"Bearer "
+        }}
       );
-      if (response.data.sucess) {
-        Cookies.set('userRole', response.data.role, { expires: '1h' });
-        switch (response.data.role) {
-          case 'admin':
+      if (response.data.user) {
+        // Cookies.set('userRole', response.data.user.role, { expires: '1h' });
+        switch (response.data.user.role) {
+          case 'ADMIN':
             router.push('/dashboard/admin/overview');
             break;
-          case 'alumni':
+          case 'ALUMNI':
             router.push('/dashboard/alumni/overview');
             break;
-          case 'faculty':
+          case 'FACULTY':
             router.push('/dashboard/faculty/overview');
             break;
           default:
