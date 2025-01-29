@@ -8,27 +8,27 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { Calendar, User, BookOpen, FileText, Tag, Clock, Plus, CheckCircle, Link,Download } from "lucide-react";
+// import { cn } from "@/lib/utils";
+import { Calendar, User, BookOpen, Clock, Link,Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// import { Label } from "@/components/ui/label";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
+// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+// import { Calendar as CalendarIcon } from "lucide-react";
+// import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+// import { format } from "date-fns";
 
 export default function AssignedUpcomingEvents() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState<boolean>(false);
-  const [eventName, setEventName] = useState("");
-  const [title, setTitle] = useState("");
-  const [eventType, setEventType] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [prerequisite, setPrerequisite] = useState("");
-  const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState<boolean>(false);
+  // const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState<boolean>(false);
+  // const [eventName, setEventName] = useState("");
+  // const [title, setTitle] = useState("");
+  // const [eventType, setEventType] = useState("");
+  // const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  // const [prerequisite, setPrerequisite] = useState("");
+  // const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState<boolean>(false);
 
   const event = [
     {
@@ -91,14 +91,14 @@ export default function AssignedUpcomingEvents() {
     setIsDialogOpen(false);
     setSelectedEvent(null);
   };
-  const handleCloseCreateEventDialog = () => {
-    setIsCreateEventDialogOpen(false);
-    setEventName("");
-    setTitle("");
-    setEventType("");
-    setSelectedDate(undefined);
-    setPrerequisite("");
-  };
+  // const handleCloseCreateEventDialog = () => {
+  //   setIsCreateEventDialogOpen(false);
+  //   setEventName("");
+  //   setTitle("");
+  //   setEventType("");
+  //   setSelectedDate(undefined);
+  //   setPrerequisite("");
+  // };
   return (
     <div className="bg-gray-100 w-full">
       <main className="flex-1 p-8 overflow-auto">

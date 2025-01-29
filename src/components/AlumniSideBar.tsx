@@ -98,7 +98,9 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
             <div key={menu.title}>
               <div
                 onClick={() => {
-                  menu.children.length > 0 && toggleMenu(menu.title);
+                  if (menu.children.length > 0) {
+                    toggleMenu(menu.title);
+                  }
                   setActiveMenu(menu.title);
                 }}
                 className={`

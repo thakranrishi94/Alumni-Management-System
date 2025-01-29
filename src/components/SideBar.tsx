@@ -1,7 +1,3 @@
-// File: src/app/layout.tsx
-
-
-// File: src/components/SideBar.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -61,12 +57,14 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
-      >
-        ☰
-      </button>
+      {isMobile && (
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
+        >
+          ☰
+        </button>
+      )}
 
       {/* Sidebar - Now fixed width */}
       <aside
@@ -78,26 +76,28 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
         `}
       >
         <div className="p-6 text-xl font-bold flex justify-between items-center">
-      <div className="flex flex-col items-center">
-        <div className="h-40 w-30 p-5 relative">
-          <Image
-            src="/logo.jpg" // Path to the image in the public folder
-            alt="Logo"
-            width={120} // Set the width of the image
-            height={160} // Set the height of the image
-            className="object-cover" // Optional: Add styling
-          />
+          <div className="flex flex-col items-center">
+            <div className="h-40 w-30 p-5 relative">
+              <Image
+                src="/logo.jpg" // Path to the image in the public folder
+                alt="Logo"
+                width={120} // Set the width of the image
+                height={160} // Set the height of the image
+                className="object-cover" // Optional: Add styling
+              />
+            </div>
+            <p className="pl-5">{title}</p>
+          </div>
         </div>
-        <p className="pl-5">{title}</p>
-      </div>
-    </div>
 
         <nav className="mt-4">
           {sidebarMenus.map((menu) => (
             <div key={menu.title}>
               <div
                 onClick={() => {
-                  menu.children.length > 0 && toggleMenu(menu.title);
+                  if (menu.children.length > 0) {
+                    toggleMenu(menu.title);
+                  }
                   setActiveMenu(menu.title);
                 }}
                 className={`

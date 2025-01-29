@@ -1,8 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-// Define the type for Card Data
-import { useRouter } from "next/navigation";
-import { isAuthenticated } from "../../../../utils/auth";
 type CardData = {
   title: string;
   value: number;
@@ -10,18 +7,6 @@ type CardData = {
   icon: string; // You can use icons from libraries like react-icons or custom SVGs
 };
 export default function OverviewPage() {
-const router=useRouter();
-const [loading,setLoading]=useState(true);
-useEffect(()=>{
-  const checkAuth=async()=>{
-    const valid=await isAuthenticated();
-    if(!valid) router.push("/(auth)/login");
-    setLoading(false);
-  };
-  checkAuth();
-},[]);
-if(loading) return <p>Loading...</p>
-
   const [alumniScore, setAlumniScore] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
   const [facultyCount, setFacultyCount] = useState(0);

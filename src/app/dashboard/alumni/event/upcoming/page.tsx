@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Calendar, User, BookOpen, FileText, Tag, Clock, Plus, CheckCircle, Link } from "lucide-react";
+import { Calendar, User, BookOpen, Clock, Plus, CheckCircle, Link } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

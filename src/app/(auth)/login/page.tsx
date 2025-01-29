@@ -1,12 +1,12 @@
 "use client"
 import React, { useEffect } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
-import axios, { Axios } from 'axios';
+import axios from 'axios';
 import Cookies from "js-cookie";
 import { useToast } from "@/hooks/use-toast";
-import ProtectedRoute from "@/components/ProtectedRoute";
+// import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -59,49 +59,8 @@ export default function LoginPage() {
     }
   };
   return (
-    <ProtectedRoute>
+    // <ProtectedRoute>
       <div className="relative flex min-h-screen flex-col bg-white overflow-x-hidden justify-center">
-        {/* Header Section */}
-        <header className="flex items-center justify-between border-b border-solid border-b-gray-200 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <div className="text-blue-600">
-              <Image
-                src="/logo.jpg"
-                alt="logo"
-                width={40} // Set the width
-                height={40} // Set the height
-                className="h-10 w-10 rounded"
-              />
-            </div>
-            <h2 className="text-lg font-bold text-gray-900">KR Managalam Alumni</h2>
-          </div>
-          <nav className="flex gap-6">
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Home
-            </a>
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Events
-            </a>
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Groups
-            </a>
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Mentorship
-            </a>
-            <a href="#" className="text-sm font-medium text-gray-900">
-              Benefits
-            </a>
-          </nav>
-          <div className="flex gap-3">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold">
-              Give
-            </button>
-            <button className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold">
-              Sign In
-            </button>
-          </div>
-        </header>
-
         {/* Main Section */}
         <main className="flex flex-1 flex-col md:flex-row py-20">
           {/* Left Section: Image */}
@@ -113,9 +72,7 @@ export default function LoginPage() {
                 "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('krmu.jpg')",
             }}
           ></div>
-
           {/* Right Section: Content */}
-          
           <div className="flex flex-col flex-1 px-6 py-8 sm:px-10 lg:px-20">
             <div className="max-w-md w-4/5 mx-auto">
             <form onSubmit={handleSubmit}>
@@ -172,66 +129,9 @@ export default function LoginPage() {
               </form>
             </div>
           </div>
-          
         </main>
-
-        {/* Footer Section */}
-        <footer className="bg-black text-white py-6">
-          <div className="container mx-auto flex flex-col items-center">
-            {/* Social Media Icons */}
-            <div className="flex space-x-4 mb-4">
-              <a
-                href="https://www.linkedin.com/in/krmuniv/"
-                className="bg-white rounded-full py-1 px-2"
-              >
-                <span className="text-black font-bold">in</span>
-              </a>
-              <a
-                href="https://www.youtube.com/@KRMangalamUniversity"
-                className="bg-white rounded-full py-1 px-2"
-              >
-                <span>
-                  <Image
-                    src="/youtube.png"
-                    alt="YouTube"
-                    width={24} // Set the width
-                    height={24} // Set the height
-                    className="h-6 w-6"
-                  />
-                </span>
-              </a>
-            </div>
-
-            {/* Links */}
-            <nav className="flex space-x-4 text-sm uppercase">
-              <a href="#home" className="hover:underline">
-                Home
-              </a>
-              <span>|</span>
-              <a href="#about" className="hover:underline">
-                About
-              </a>
-              <span>|</span>
-              <a href="#contact" className="hover:underline">
-                Contact
-              </a>
-              <span>|</span>
-              <a href="#sitemap" className="hover:underline">
-                Sitemap
-              </a>
-              <span>|</span>
-              <a href="#terms" className="hover:underline">
-                Terms
-              </a>
-              <span>|</span>
-              <a href="#privacy" className="hover:underline">
-                Privacy
-              </a>
-            </nav>
-          </div>
-        </footer>
       </div>
-    </ProtectedRoute>
+    // </ProtectedRoute>
 
   );
 }

@@ -1,7 +1,7 @@
 "use client"
-import SideBar from "@/components/SideBar";
-import "../../globals.css";
-import AdminMenu from "@/utils/AdminMenu.json";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
+import "../globals.css";
 
 export default function RootLayout({
   children,
@@ -11,11 +11,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-          <SideBar title="Admin Portal" sidebarMenus={AdminMenu}>
+          <Header/>
             {children}
-          </SideBar>
+          <Footer/>
       </body>
     </html>
   );
 }
-
