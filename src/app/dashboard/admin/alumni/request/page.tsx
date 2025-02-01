@@ -1,46 +1,120 @@
 "use client";
-import React, { useState } from "react";
-import { Search, Check, X, Clock, Mail, Phone, Calendar, User } from "lucide-react"; // Import icons from a library like lucide-react
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"; // Import shadcn components
-import Image from "next/image"; // Import the Image component
+import React, { useEffect, useState, useMemo } from "react";
+import { Search, Check, X, Clock, Mail, Phone, Calendar, User } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import Image from "next/image";
+import axios from "axios";
+
+interface AlumniData {
+  name: string;
+  email: string;
+  year: number;
+  phone: number;
+  updatedAt: string;
+  batch: number;
+  id: number;
+  requestStatus: "PENDING" | "APPROVED" | "REJECTED";
+  profilePhoto: string | null;
+  user: { email: string; name: string; phone: number};
+}
 
 export default function AlumniRequest() {
-  const [searchQuery, setSearchQuery] = useState<string>(""); // State for search query
-  const [selectedAlumni, setSelectedAlumni] = useState(null); // State to store selected alumni
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to control dialog visibility
-  const alumni = [
-    { name: "Marie Johnson", email: "marie@acme.com", year: 2010, Cno: 1234567890, updated: "3 days ago", status: "Pending", profilePhoto: null },
-    { name: "Sarah Liu", email: "sarah@acme.com", year: 2015, Cno: 1234567840, updated: "2 weeks ago", status: "Approved", profilePhoto: "/logo.jpg" },
-    { name: "Alex Grimes", email: "alex@acme.com", year: 2005, Cno: 1234567890, updated: "1 month ago", status: "Rejected", profilePhoto: "/logo.jpg" },
-    { name: "Chris Davis", email: "chris@acme.com", year: 2020, Cno: 1234567820, updated: "2 days ago", status: "Pending", profilePhoto: "" },
-    { name: "Tara Smith", email: "tara@acme.com", year: 2000, Cno: 1234567870, updated: "1 week ago", status: "Approved", profilePhoto: "/logo.jpg" },
-  ];
-  // Filter alumni based on search query
-  const filteredAlumni = alumni.filter((person) =>
-    person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    person.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    person.year.toString().includes(searchQuery) ||
-    person.Cno.toString().includes(searchQuery)
-  );
-  // Function to generate initials for the default logo
-  const getInitials = (name: string) => {
+  const [searchQuery, setSearchQuery] = useState<string>(""); 
+  const [selectedAlumni, setSelectedAlumni] = useState<AlumniData | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [alumni, setAlumni] = useState<AlumniData[]>([]);
+
+  // Calculate request counts from alumni data using useMemo
+  const requestCounts = useMemo(() => {
+    return alumni.reduce(
+      (acc, curr) => {
+        switch (curr.requestStatus) {
+          case "PENDING":
+            acc.pending += 1;
+            break;
+          case "APPROVED":
+            acc.approved += 1;
+            break;
+          case "REJECTED":
+            acc.rejected += 1;
+            break;
+        }
+        return acc;
+      },
+      { pending: 0, approved: 0, rejected: 0 }
+    );
+  }, [alumni]);
+
+  useEffect(() => {
+    getAllumniDetails();
+  }, []);
+
+  async function getAllumniDetails() {
+    try {
+      const aData = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/alumni`);
+      setAlumni(aData.data);
+    } catch (error) {
+      console.error("Error fetching alumni details:", error);
+      setAlumni([]);
+    }
+  }
+
+  const getInitials = (name: string | undefined): string => {
+    if (!name) return "??";
+    
     return name
       .split(" ")
-      .map((word) => word[0])
+      .map((word) => word[0] || "")
       .join("")
       .toUpperCase();
   };
-  // Function to handle row click
-  const handleRowClick = (person) => {
-    setSelectedAlumni(person); // Set the selected alumni
-    setIsDialogOpen(true); // Open the dialog
+
+  const handleRowClick = (person: AlumniData) => {
+    setSelectedAlumni(person);
+    setIsDialogOpen(true);
   };
+
+  //Handle Approve and reject request
+  const handleStatusChange = async (requestStatus: 'APPROVED' | 'REJECTED') => {
+    console.log(selectedAlumni?.id)
+    try {
+      if (!selectedAlumni?.id) {
+        console.error('User ID is missing');
+        return;
+      }
+  
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/alumni/${selectedAlumni.id}`, {
+        requestStatus: requestStatus,
+      });
+  
+      // Close the dialog after update
+      setIsDialogOpen(false);
+  
+      // Reload the alumni list or update the state locally
+      getAllumniDetails();
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
+  
+
+  const filteredAlumni = useMemo(() => {
+    return alumni.filter((person) =>
+      person.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.batch.toString().includes(searchQuery) ||
+      person.user.phone.toString().includes(searchQuery)
+    );
+  }, [alumni, searchQuery]);
+
   return (
     <div className="bg-gray-100 min-h-screen w-full">
-      {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni Requests</h1>
         <p className="text-gray-600">Manage alumni requests, approve or reject applications</p>
+        
+        {/* Statistics Cards */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center space-x-4">
@@ -49,7 +123,7 @@ export default function AlumniRequest() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Pending Requests</p>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold">{requestCounts.pending}</p>
               </div>
             </div>
           </div>
@@ -60,7 +134,7 @@ export default function AlumniRequest() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Approved Requests</p>
-                <p className="text-2xl font-bold">45</p>
+                <p className="text-2xl font-bold">{requestCounts.approved}</p>
               </div>
             </div>
           </div>
@@ -71,20 +145,17 @@ export default function AlumniRequest() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Rejected Requests</p>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-2xl font-bold">{requestCounts.rejected}</p>
               </div>
             </div>
           </div>
         </div>
-        {/* Statistics Cards */}
-        <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {/* ... (same as before) ... */}
-        </div>
+
         {/* Search */}
         <div className="mt-6 flex items-center justify-between">
           <div className="relative flex-1 w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" /> {/* Search icon */}
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -94,8 +165,8 @@ export default function AlumniRequest() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-         
         </div>
+
         {/* Alumni Table */}
         <div className="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
           <table className="w-full">
@@ -107,7 +178,6 @@ export default function AlumniRequest() {
                 <th className="p-4 text-left">Grad Year</th>
                 <th className="p-4 text-left">Phone</th>
                 <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-left">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -115,154 +185,150 @@ export default function AlumniRequest() {
                 <tr
                   key={index}
                   className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
-                  onClick={() => handleRowClick(person)} // Handle row click
+                  onClick={() => handleRowClick(person)}
                 >
                   <td className="p-4">
                     {person.profilePhoto ? (
                       <Image
                         src={person.profilePhoto}
-                        alt={person.name}
-                        width={40} // Set the width
-                        height={40} // Set the height
+                        alt={person.user.name}
+                        width={40}
+                        height={40}
                         className="h-10 w-10 rounded-full object-cover"
                       />
                     ) : (
                       <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                        {getInitials(person.name)}
+                        {getInitials(person.user.name)}
                       </div>
                     )}
                   </td>
-                  <td className="p-4">{person.name}</td>
-                  <td className="p-4">{person.email}</td>
-                  <td className="p-4">{person.year}</td>
-                  <td className="p-4">{person.Cno}</td>
+                  <td className="p-4">{person.user.name}</td>
+                  <td className="p-4">{person.user.email}</td>
+                  <td className="p-4">{person.batch}</td>
+                  <td className="p-4">{person.user.phone}</td>
                   <td className="p-4">
                     <span
                       className={`px-2 py-1 text-sm rounded-full ${
-                        person.status === "Pending"
+                        person.requestStatus === "PENDING"
                           ? "bg-yellow-100 text-yellow-800"
-                          : person.status === "Approved"
+                          : person.requestStatus === "APPROVED"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {person.status}
+                      {person.requestStatus}
                     </span>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      className="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
-                      title="Approve"
-                    >
-                      <Check className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="ml-2 p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
-                      title="Reject"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {/* Pagination */}
-        <div className="mt-6 flex justify-center">
-          <nav className="flex items-center space-x-2">
-            {/* ... (same as before) ... */}
-          </nav>
-        </div>
+
+        {/* Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Alumni Details</DialogTitle>
+              <DialogDescription>View and manage alumni information</DialogDescription>
+            </DialogHeader>
+            {selectedAlumni && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-6">
+                  {selectedAlumni.profilePhoto ? (
+                    <Image
+                      src={selectedAlumni.profilePhoto}
+                      alt={selectedAlumni.user.name}
+                      width={80}
+                      height={80}
+                      className="h-20 w-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                      {getInitials(selectedAlumni.user.name)}
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedAlumni.user.name}</h2>
+                    <p className="text-gray-600">{selectedAlumni.user.email}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Mail className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{selectedAlumni.user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-green-100 rounded-full">
+                      <Phone className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{selectedAlumni.user.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-purple-100 rounded-full">
+                      <Calendar className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Graduation Year</p>
+                      <p className="font-medium">{selectedAlumni.batch}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-yellow-100 rounded-full">
+                      <User className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Status</p>
+                      <p className="font-medium">
+                        <span
+                          className={`px-2 py-1 text-sm rounded-full ${
+                            selectedAlumni.requestStatus === "PENDING"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : selectedAlumni.requestStatus === "APPROVED"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {selectedAlumni.requestStatus}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  <p>Last updated: {selectedAlumni.updatedAt}</p>
+                </div>
+
+                {/* Buttons for Approve/Reject */}
+                <div className="flex space-x-4 mt-4">
+                  <button
+                    className="w-full p-3 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
+                    title="Approve"
+                    onClick={() => handleStatusChange('APPROVED')}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="w-full p-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                    title="Reject"
+                    onClick={() => handleStatusChange('REJECTED')}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
-      {/* Popup Form */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Alumni Details</DialogTitle>
-            <DialogDescription>View and manage alumni information</DialogDescription>
-          </DialogHeader>
-          {selectedAlumni && (
-            <div className="space-y-6">
-              {/* Profile Section */}
-              <div className="flex items-center space-x-6">
-                {selectedAlumni.profilePhoto ? (
-                  <Image
-                    src={selectedAlumni.profilePhoto}
-                    alt={selectedAlumni.name}
-                    width={80} // Set the width
-                    height={80} // Set the height
-                    className="h-20 w-20 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                    {getInitials(selectedAlumni.name)}
-                  </div>
-                )}
-                <div>
-                  <h2 className="text-2xl font-bold">{selectedAlumni.name}</h2>
-                  <p className="text-gray-600">{selectedAlumni.email}</p>
-                </div>
-              </div>
-              {/* Details Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <Mail className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium">{selectedAlumni.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <Phone className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Phone</p>
-                    <p className="font-medium">{selectedAlumni.Cno}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-purple-100 rounded-full">
-                    <Calendar className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Graduation Year</p>
-                    <p className="font-medium">{selectedAlumni.year}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-yellow-100 rounded-full">
-                    <User className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <p className="font-medium">
-                      <span
-                        className={`px-2 py-1 text-sm rounded-full ${
-                          selectedAlumni.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : selectedAlumni.status === "Approved"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {selectedAlumni.status}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {/* Last Updated Section */}
-              <div className="text-sm text-gray-600">
-                <p>Last updated: {selectedAlumni.updated}</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

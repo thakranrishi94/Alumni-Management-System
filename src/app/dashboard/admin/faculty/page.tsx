@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AddNewFaculty from "@/components/AddNewFaculty";
-import { Search} from "lucide-react";
+import { Search } from "lucide-react";
 export default function FacultyPage() {
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -153,10 +153,10 @@ export default function FacultyPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <AddNewFaculty/>
+          <AddNewFaculty />
         </div>
         <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
-          
+
           <table className="w-full">
             <thead className="bg-gray-200">
               <tr>
@@ -180,8 +180,8 @@ export default function FacultyPage() {
                   <td className="p-4">
                     <span
                       className={`p-2 w-24 h-10 text-center rounded-xl border-solid ${person.status === "Active"
-                          ? "bg-green-400 hover:bg-green-700"
-                          : "bg-red-400 hover:bg-red-700"
+                        ? "bg-green-400 hover:bg-green-700"
+                        : "bg-red-400 hover:bg-red-700"
                         } border-black text-white`}
                     >
                       {person.status}

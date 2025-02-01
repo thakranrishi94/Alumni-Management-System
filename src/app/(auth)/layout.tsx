@@ -1,7 +1,7 @@
-"use client"
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import "../globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function RootLayout({
   children,
@@ -11,9 +11,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-          <Header/>
+        <main className="min-h-screen flex flex-col">
+          <Header />
+          <div className="flex-grow">
             {children}
-          <Footer/>
+          </div>
+          <Footer />
+          <Toaster />
+        </main>
       </body>
     </html>
   );

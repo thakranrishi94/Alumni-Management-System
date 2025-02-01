@@ -54,46 +54,50 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
     setOpenMenu((prev) => (prev === title ? null : title));
   };
 
+  // Return the layout structure without html/body tags
   return (
-    <div className="flex h-screen overflow-hidden">
+    <section className="flex min-h-screen bg-gray-50">
       {/* Mobile Menu Button */}
       {isMobile && (
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
+          className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden"
+          aria-label="Toggle menu"
         >
+          <span className="sr-only">Toggle menu</span>
           ☰
         </button>
       )}
 
-      {/* Sidebar - Now fixed width */}
+      {/* Sidebar */}
       <aside
         className={`
-          w-64 h-full bg-white shadow-md shrink-0
-          transform transition-transform duration-300
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
-          z-40 overflow-y-auto
+          fixed md:static w-64 h-screen bg-white shadow-md
+          transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0 z-40
         `}
       >
-        <div className="p-6 text-xl font-bold flex justify-between items-center">
+        <div className="p-6">
           <div className="flex flex-col items-center">
             <div className="h-40 w-30 p-5 relative">
               <Image
-                src="/logo.jpg" // Path to the image in the public folder
+                src="/logo.jpg"
                 alt="Logo"
-                width={120} // Set the width of the image
-                height={160} // Set the height of the image
-                className="object-cover" // Optional: Add styling
+                width={120}
+                height={160}
+                className="object-cover"
+                priority
               />
             </div>
-            <p className="pl-5">{title}</p>
+            <h1 className="text-xl font-bold">{title}</h1>
           </div>
         </div>
 
-        <nav className="mt-4">
+        <nav className="mt-4" role="navigation">
           {sidebarMenus.map((menu) => (
             <div key={menu.title}>
-              <div
+              <button
                 onClick={() => {
                   if (menu.children.length > 0) {
                     toggleMenu(menu.title);
@@ -101,13 +105,16 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
                   setActiveMenu(menu.title);
                 }}
                 className={`
-                  px-6 py-3 cursor-pointer flex justify-between items-center
+                  w-full px-6 py-3 text-left flex justify-between items-center
                   ${activeMenu === menu.title ? "bg-gray-200 font-semibold" : "hover:bg-gray-100"}
                 `}
+                aria-expanded={openMenu === menu.title}
               >
                 {menu.title}
-                {menu.children.length > 0 && <span>{openMenu === menu.title ? "▼" : "►"}</span>}
-              </div>
+                {menu.children.length > 0 && (
+                  <span aria-hidden="true">{openMenu === menu.title ? "▼" : "►"}</span>
+                )}
+              </button>
               {openMenu === menu.title && menu.children.length > 0 && (
                 <div className="pl-8 bg-gray-50">
                   {menu.children.map((child) => (
@@ -128,19 +135,20 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
         </nav>
       </aside>
 
-      {/* Main content area - now scrollable */}
-      <main className="flex-grow overflow-y-auto">
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto p-6">
         {children}
       </main>
 
-      {/* Backdrop for mobile */}
+      {/* Mobile backdrop */}
       {isMobile && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
-    </div>
+    </section>
   );
 };
 

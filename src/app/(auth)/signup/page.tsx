@@ -11,11 +11,9 @@ export default function SignupPage() {
     email: "",
     phoneNumber: "",
     course: "",
-    school: "",
     currentOrganization: "",
     designation: "",
     skills: "",
-    image: null, // For image upload
     password: "",
     confirmPassword: "",
   });
@@ -58,43 +56,7 @@ export default function SignupPage() {
   return (
     <div className="relative flex min-h-screen flex-col bg-white overflow-hidden">
       {/* Header Section */}
-      <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center gap-4">
-          <Image
-            src="/logo.jpg"
-            alt="logo"
-            width={40}
-            height={40}
-            className="h-10 w-10 rounded"
-          />
-          <h2 className="text-lg font-bold text-gray-900">KR Mangalam Alumni</h2>
-        </div>
-        <nav className="hidden md:flex gap-6">
-          <a href="#" className="text-sm font-medium text-gray-900 hover:underline">
-            Home
-          </a>
-          <a href="#" className="text-sm font-medium text-gray-900 hover:underline">
-            Events
-          </a>
-          <a href="#" className="text-sm font-medium text-gray-900 hover:underline">
-            Groups
-          </a>
-          <a href="#" className="text-sm font-medium text-gray-900 hover:underline">
-            Mentorship
-          </a>
-          <a href="#" className="text-sm font-medium text-gray-900 hover:underline">
-            Benefits
-          </a>
-        </nav>
-        <div className="flex gap-3">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold">
-            Give
-          </button>
-          <button className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold">
-            Sign In
-          </button>
-        </div>
-      </header>
+      
 
       {/* Main Section */}
       <main className="flex flex-col md:flex-row py-10 px-4 md:px-20 gap-8 justify-center items-center">
@@ -190,22 +152,7 @@ export default function SignupPage() {
                   />
                 </div>
 
-                {/* School */}
-                <div>
-                  <label htmlFor="school" className="block font-medium mb-1 text-gray-600 ">
-                    School *
-                  </label>
-                  <input
-                    type="text"
-                    id="school"
-                    name="school"
-                    value={formData.school}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded-md"
-                    placeholder="School"
-                    required
-                  />
-                </div>
+                
 
                 {/* Current Organization */}
                 <div>
@@ -295,21 +242,7 @@ export default function SignupPage() {
                   )}
                 </div>
 
-                {/* Image Upload */}
-                <div>
-                  <label htmlFor="image" className="block w-full font-medium mb-1 text-gray-600 ">
-                    Profile Image *
-                  </label>
-                  <input
-                    type="file"
-                    id="image"
-                    name="image"
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded-md text-gray-600"
-                    accept="image/*"
-                    required
-                  />
-                </div>
+                
               </div>
 
               {/* Submit Button */}
@@ -324,59 +257,7 @@ export default function SignupPage() {
         </div>
       </main>
 
-      {/* Footer Section */}
-      <footer className="bg-black text-white py-6">
-        <div className="container mx-auto flex flex-col items-center">
-          {/* Social Media Icons */}
-          <div className="flex space-x-4 mb-4">
-            <a
-              href="https://www.linkedin.com/in/krmuniv/"
-              className="bg-white rounded-full px-3 p-2"
-            >
-              <span className="text-black font-bold">in</span>
-            </a>
-            <a
-              href="https://www.youtube.com/@KRMangalamUniversity"
-              className="bg-white rounded-full px-2 p-2"
-            >
-              <Image
-                src="/youtube.png"
-                alt="YouTube"
-                width={24}
-                height={24}
-                className="h-6 w-6"
-              />
-            </a>
-          </div>
-          {/* Links */}
-          <nav className="flex space-x-4 text-sm uppercase">
-            <a href="#home" className="hover:underline">
-              Home
-            </a>
-            <span>|</span>
-            <a href="#about" className="hover:underline">
-              About
-            </a>
-            <span>|</span>
-            <a href="#contact" className="hover:underline">
-              Contact
-            </a>
-            <span>|</span>
-            <a href="#sitemap" className="hover:underline">
-              Sitemap
-            </a>
-            <span>|</span>
-            <a href="#terms" className="hover:underline">
-              Terms
-            </a>
-            <span>|</span>
-            <a href="#privacy" className="hover:underline">
-              Privacy
-            </a>
-          </nav>
-        </div>
-      </footer>
-
+     
       {/* Success Popup */}
       <Dialog open={showSuccessPopup} onOpenChange={setShowSuccessPopup}>
         <DialogContent className="sm:max-w-[425px]">

@@ -53,7 +53,7 @@ export default function UpcomingEvents() {
       Title: "Networking and Collaboration",
       Type: "Networking Event",
       Date: "2023-08-25",
-      MeetLink:"",
+      MeetLink: "",
     },
   ];
 
@@ -144,12 +144,12 @@ export default function UpcomingEvents() {
                     <td className="p-3 text-gray-700">
                       <span
                         className={`px-2 py-1 text-sm rounded-full ${event.Type === "Conference"
-                            ? "bg-blue-100 text-blue-800"
-                            : event.Type === "Workshop"
-                              ? "bg-green-100 text-green-800"
-                              : event.Type === "Seminar"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-yellow-100 text-yellow-800"
+                          ? "bg-blue-100 text-blue-800"
+                          : event.Type === "Workshop"
+                            ? "bg-green-100 text-green-800"
+                            : event.Type === "Seminar"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-yellow-100 text-yellow-800"
                           }`}
                       >
                         {event.Type}

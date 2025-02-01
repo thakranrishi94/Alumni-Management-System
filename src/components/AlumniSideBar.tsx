@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
-// Define types for the menu items
 type MenuItem = {
   title: string;
   children: { name: string; link: string }[];
@@ -23,7 +22,6 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Handle responsive sidebar
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -35,10 +33,8 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Set the default open and active menu based on the current URL
   useEffect(() => {
     if (pathname) {
-      // Find the menu item that matches the current URL
       for (const menu of sidebarMenus) {
         const matchingChild = menu.children.find((child) => child.link === pathname);
         if (matchingChild) {
@@ -60,43 +56,50 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <section className="flex min-h-screen bg-gray-50">
       {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
-      >
-        ☰
-      </button>
+      {isMobile && (
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden"
+          aria-label="Toggle menu"
+        >
+          <span className="sr-only">Toggle menu</span>
+          ☰
+        </button>
+      )}
 
-      {/* Sidebar - Now fixed width */}
+      {/* Sidebar */}
       <aside
         className={`
-          w-64 h-full bg-white shadow-md shrink-0
-          transform transition-transform duration-300
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
-          z-40 overflow-y-auto flex flex-col
+          fixed md:static w-64 h-screen bg-white shadow-md
+          transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0 z-40 flex flex-col
         `}
       >
-        <div className="p-6 text-xl font-bold flex justify-between items-center">
+        {/* Header */}
+        <div className="p-6">
           <div className="flex flex-col items-center">
             <div className="h-40 w-30 p-5 relative">
               <Image
-                src="/logo.jpg" // Path to the image in the public folder
+                src="/logo.jpg"
                 alt="Logo"
-                width={120} // Set the width of the image
-                height={160} // Set the height of the image
-                className="object-cover" // Optional: Add styling
+                width={120}
+                height={160}
+                className="object-cover"
+                priority
               />
             </div>
-            <p className="pl-5">{title}</p>
+            <h1 className="text-xl font-bold">{title}</h1>
           </div>
         </div>
 
-        <nav className="mt-4 flex-grow">
+        {/* Navigation */}
+        <nav className="flex-grow mt-4" role="navigation">
           {sidebarMenus.map((menu) => (
             <div key={menu.title}>
-              <div
+              <button
                 onClick={() => {
                   if (menu.children.length > 0) {
                     toggleMenu(menu.title);
@@ -104,13 +107,16 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
                   setActiveMenu(menu.title);
                 }}
                 className={`
-                  px-6 py-3 cursor-pointer flex justify-between items-center
+                  w-full px-6 py-3 text-left flex justify-between items-center
                   ${activeMenu === menu.title ? "bg-gray-200 font-semibold" : "hover:bg-gray-100"}
                 `}
+                aria-expanded={openMenu === menu.title}
               >
-                {menu.title}
-                {menu.children.length > 0 && <span>{openMenu === menu.title ? "▼" : "►"}</span>}
-              </div>
+                <span>{menu.title}</span>
+                {menu.children.length > 0 && (
+                  <span aria-hidden="true">{openMenu === menu.title ? "▼" : "►"}</span>
+                )}
+              </button>
               {openMenu === menu.title && menu.children.length > 0 && (
                 <div className="pl-8 bg-gray-50">
                   {menu.children.map((child) => (
@@ -130,42 +136,46 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
           ))}
         </nav>
 
-        {/* Profile Update Section */}
-        <div className="p-4 border-t border-gray-200">
-          <Link
-            href="/profile-update"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
-            <span className="mr-2">👤</span>
-            <span>Update Profile</span>
-          </Link>
-        </div>
+        {/* Footer Actions */}
+        <div className="mt-auto">
+          {/* Profile Update Link */}
+          <div className="p-4 border-t border-gray-200">
+            <Link
+              href="/profile-update"
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <span className="mr-2" aria-hidden="true">👤</span>
+              <span>Update Profile</span>
+            </Link>
+          </div>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t border-gray-200">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
-          >
-            <span className="mr-2">🚪</span>
-            <span>Logout</span>
-          </button>
+          {/* Logout Button */}
+          <div className="p-4 border-t border-gray-200">
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+            >
+              <span className="mr-2" aria-hidden="true">🚪</span>
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Main content area - now scrollable */}
-      <main className="flex-grow overflow-y-auto">
+      {/* Main Content */}
+      <main className="flex-1 p-6 overflow-y-auto">
         {children}
       </main>
 
-      {/* Backdrop for mobile */}
+      {/* Mobile Backdrop */}
       {isMobile && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
-    </div>
+    </section>
   );
 };
 

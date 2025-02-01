@@ -1,61 +1,51 @@
 "use client"
 import Image from "next/image";
+import Link from "next/link";
 
-export default function footer () {
+export default function Footer() {
     return (
-        <footer className="bg-black text-white py-6">
+        <footer className="bg-black text-white py-6 mt-auto">
             <div className="container mx-auto flex flex-col items-center">
-                {/* Social Media Icons */}
                 <div className="flex space-x-4 mb-4">
                     <a
                         href="https://www.linkedin.com/in/krmuniv/"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="bg-white rounded-full py-1 px-2"
                     >
                         <span className="text-black font-bold">in</span>
                     </a>
                     <a
                         href="https://www.youtube.com/@KRMangalamUniversity"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="bg-white rounded-full py-1 px-2"
                     >
-                        <span>
-                            <Image
-                                src="/youtube.png"
-                                alt="YouTube"
-                                width={24} // Set the width
-                                height={24} // Set the height
-                                className="h-6 w-6"
-                            />
-                        </span>
+                        <Image
+                            src="/youtube.png"
+                            alt="YouTube"
+                            width={24}
+                            height={24}
+                            className="h-6 w-6"
+                            priority
+                        />
                     </a>
                 </div>
 
-                {/* Links */}
-                <nav className="flex space-x-4 text-sm uppercase">
-                    <a href="#home" className="hover:underline">
-                        Home
-                    </a>
+                <nav className="flex flex-wrap justify-center gap-2 text-sm uppercase">
+                    <Link href="/" className="hover:underline">Home</Link>
                     <span>|</span>
-                    <a href="#about" className="hover:underline">
-                        About
-                    </a>
+                    <Link href="/about" className="hover:underline">About</Link>
                     <span>|</span>
-                    <a href="#contact" className="hover:underline">
-                        Contact
-                    </a>
+                    <Link href="/contact" className="hover:underline">Contact</Link>
                     <span>|</span>
-                    <a href="#sitemap" className="hover:underline">
-                        Sitemap
-                    </a>
+                    <Link href="/sitemap" className="hover:underline">Sitemap</Link>
                     <span>|</span>
-                    <a href="#terms" className="hover:underline">
-                        Terms
-                    </a>
+                    <Link href="/terms" className="hover:underline">Terms</Link>
                     <span>|</span>
-                    <a href="#privacy" className="hover:underline">
-                        Privacy
-                    </a>
+                    <Link href="/privacy" className="hover:underline">Privacy</Link>
                 </nav>
             </div>
         </footer>
-    )
-};
+    );
+}
