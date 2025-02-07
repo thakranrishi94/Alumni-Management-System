@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react";
+
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -11,17 +11,46 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) {
+  const validateInputs = () => {
+    if (!email.trim()) {
       toast({
-        title: "Please fill in all fields",
-        description: "Email and password are required",
+        title: "Email Required",
+        description: "Please enter your email address",
         variant: "destructive",
       });
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!password.trim()) {
+      toast({
+        title: "Password Required",
+        description: "Please enter your password",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!validateInputs()) {
       return;
     }
 
@@ -33,8 +62,10 @@ export default function LoginPage() {
       );
       
       if (response.data.user) {
-        Cookies.set('ams_user_role', response.data.user.role, { expires: 1 });
-        Cookies.set('ams_token', response.data.token, { expires: 1 });
+        const expiryDays = rememberMe ? 7 : 1;
+        
+        Cookies.set('ams_user_role', response.data.user.role, { expires: expiryDays });
+        Cookies.set('ams_token', response.data.token, { expires: expiryDays });
 
         const routes = {
           'ADMIN': '/dashboard/admin/overview',
@@ -42,13 +73,27 @@ export default function LoginPage() {
           'FACULTY': '/dashboard/faculty/overview'
         };
 
-        router.push(routes[response.data.user.role] || '/');
+        const redirectPath = routes[response.data.user.role as keyof typeof routes] || '/';
+        router.push(redirectPath);
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+          variant: "default",
+        });
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.log("Login error:", error);
+    
+      let errorMessage = "Invalid credentials. Please check your email and password.";
+    
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      }
+    
       toast({
         title: "Login Failed",
-        description: error.response?.data?.message || "Invalid credentials",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -86,6 +131,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     className="mt-1 p-2 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                     required
+                    autoComplete="email"
                   />
                 </label>
               </div>
@@ -100,6 +146,7 @@ export default function LoginPage() {
                     placeholder="••••••••••"
                     className="mt-1 p-2 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                     required
+                    autoComplete="current-password"
                   />
                 </label>
               </div>
@@ -108,6 +155,8 @@ export default function LoginPage() {
                 <input
                   type="checkbox"
                   id="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring focus:ring-blue-200"
                 />
                 <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
@@ -117,7 +166,7 @@ export default function LoginPage() {
 
               <button 
                 type="submit" 
-                className="w-full bg-blue-600 text-white py-2 rounded-md font-bold hover:bg-blue-700 disabled:opacity-50"
+                className="w-full bg-blue-600 text-white py-2 rounded-md font-bold hover:bg-blue-700 disabled:opacity-50 transition-opacity"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign in"}
@@ -125,7 +174,7 @@ export default function LoginPage() {
 
               <div className="text-center text-sm text-gray-700">
                 <p>
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link href="/signup" className="text-blue-600 hover:underline">
                     Sign up
                   </Link>

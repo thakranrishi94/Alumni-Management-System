@@ -10,10 +10,21 @@ import {
 import { Calendar, User, BookOpen, FileText, Tag, Clock } from "lucide-react"; // Import icons
 
 export default function PastEvent() {
-  const [selectedEvent, setSelectedEvent] = useState(null); // State to track the selected event
+  // Define event type
+  type Event = {
+    EventName: string;
+    HostName: string;
+    FacultyName: string;
+    Title: string;
+    Type: string;
+    Date: string;
+    updated: string;
+  };
+
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null); // State to track the selected event
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
 
-  const event = [
+  const event: Event[] = [
     {
       EventName: "Tech Conference 2023",
       HostName: "Marie Johnson",
@@ -21,6 +32,7 @@ export default function PastEvent() {
       Title: "Future of AI",
       Type: "Conference",
       Date: "2023-10-15",
+      updated: "2023-10-15",
     },
     {
       EventName: "Workshop on Web Development",
@@ -29,6 +41,7 @@ export default function PastEvent() {
       Title: "Advanced JavaScript",
       Type: "Workshop",
       Date: "2023-11-05",
+      updated: "2023-10-15",
     },
     {
       EventName: "Seminar on Cybersecurity",
@@ -37,6 +50,7 @@ export default function PastEvent() {
       Title: "Cybersecurity Trends",
       Type: "Seminar",
       Date: "2023-09-20",
+      updated: "2023-10-15",
     },
     {
       EventName: "Hackathon 2023",
@@ -45,6 +59,7 @@ export default function PastEvent() {
       Title: "Innovate and Build",
       Type: "Hackathon",
       Date: "2023-12-10",
+      updated: "2023-10-15",
     },
     {
       EventName: "Alumni Meet 2023",
@@ -53,11 +68,12 @@ export default function PastEvent() {
       Title: "Networking and Collaboration",
       Type: "Networking Event",
       Date: "2023-08-25",
+      updated: "2023-10-15",
     },
   ];
 
   // Handle row click
-  const handleRowClick = (event) => {
+  const handleRowClick = (event: Event) => {
     setSelectedEvent(event); // Set the selected event
     setIsDialogOpen(true); // Open the dialog
   };
@@ -133,8 +149,9 @@ export default function PastEvent() {
                   <tr
                     key={index}
                     onClick={() => handleRowClick(event)} // Handle row click
-                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-gray-100 transition-colors cursor-pointer`} // Alternating row colors and hover effect
+                    className={`${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-gray-100 transition-colors cursor-pointer`} // Alternating row colors and hover effect
                   >
                     <td className="p-3 text-gray-700">{event.EventName}</td>
                     <td className="p-3 text-gray-700">{event.HostName}</td>
@@ -142,14 +159,15 @@ export default function PastEvent() {
                     <td className="p-3 text-gray-700">{event.Title}</td>
                     <td className="p-3 text-gray-700">
                       <span
-                        className={`px-2 py-1 text-sm rounded-full ${event.Type === "Conference"
-                          ? "bg-blue-100 text-blue-800"
-                          : event.Type === "Workshop"
+                        className={`px-2 py-1 text-sm rounded-full ${
+                          event.Type === "Conference"
+                            ? "bg-blue-100 text-blue-800"
+                            : event.Type === "Workshop"
                             ? "bg-green-100 text-green-800"
                             : event.Type === "Seminar"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
                       >
                         {event.Type}
                       </span>
@@ -196,7 +214,8 @@ export default function PastEvent() {
               {/* Profile Section */}
               <div className="flex items-center space-x-6">
                 <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                  {selectedEvent.EventName.split(" ")
+                  {selectedEvent.EventName
+                    .split(" ")
                     .map((word: string) => word[0])
                     .join("")
                     .toUpperCase()}

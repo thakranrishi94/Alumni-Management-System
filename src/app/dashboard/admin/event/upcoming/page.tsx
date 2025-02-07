@@ -6,14 +6,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"; // Import your dialog components
+} from "@/components/ui/dialog"; // Import dialog components
 import { Calendar, User, BookOpen, FileText, Tag, Clock } from "lucide-react"; // Import icons
 
+interface Event {
+  EventName: string;
+  HostName: string;
+  FacultyName: string;
+  Title: string;
+  Type: string;
+  Date: string;
+  MeetLink?: string;
+  updated?: string; // You can use this field for the last updated date
+}
+
 export default function UpcomingEvents() {
-  const [selectedEvent, setSelectedEvent] = useState(null); // State to track the selected event
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null); // State to track the selected event
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false); // State to manage dialog visibility
 
-  const event = [
+  const event: Event[] = [
     {
       EventName: "Tech Conference 2023",
       HostName: "Marie Johnson",
@@ -58,7 +69,7 @@ export default function UpcomingEvents() {
   ];
 
   // Handle row click
-  const handleRowClick = (event) => {
+  const handleRowClick = (event: Event) => {
     setSelectedEvent(event); // Set the selected event
     setIsDialogOpen(true); // Open the dialog
   };
@@ -151,6 +162,7 @@ export default function UpcomingEvents() {
                               ? "bg-purple-100 text-purple-800"
                               : "bg-yellow-100 text-yellow-800"
                           }`}
+
                       >
                         {event.Type}
                       </span>
@@ -198,7 +210,7 @@ export default function UpcomingEvents() {
               <div className="flex items-center space-x-6">
                 <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
                   {selectedEvent.EventName.split(" ")
-                    .map((word: string) => word[0])
+                    .map((word) => word[0])
                     .join("")
                     .toUpperCase()}
                 </div>
@@ -263,7 +275,7 @@ export default function UpcomingEvents() {
 
               {/* Last Updated Section */}
               <div className="text-sm text-gray-600">
-                <p>Last updated: {selectedEvent.updated}</p>
+                <p>Last updated: {selectedEvent.updated || "Not available"}</p>
               </div>
             </div>
           )}

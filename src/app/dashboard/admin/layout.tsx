@@ -8,13 +8,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body suppressHydrationWarning>
+    
         <SideBar title="Admin Portal" sidebarMenus={AdminMenu}>
           {children}
         </SideBar>
-      </body>
-    </html>
+     
   );
 }
 

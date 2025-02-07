@@ -1,7 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { CiEdit } from "react-icons/ci";
-import { Users, GraduationCap, Mail, Phone, User } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { GraduationCap, Mail, Phone, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,153 +9,181 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import AddNewFaculty from "@/components/AddNewFaculty";
 import { Search } from "lucide-react";
+import axios, { AxiosError } from "axios";
+import { toast } from "react-hot-toast";
+
+interface FacultyData {
+  id: number;
+  userId: number;
+  designation: string;
+  school: string;
+  updatedAt: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    status: "ACTIVE" | "INACTIVE";
+  };
+}
+
+interface ApiError {
+  error: string;
+}
+
 export default function FacultyPage() {
-  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [selectedFaculty, setSelectedFaculty] = useState<FacultyData | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [faculty, setFaculty] = useState<FacultyData[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [newFacultyData, setNewFacultyData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    designation: "",
+    school: "",
+  });
 
-  const faculty = [
-    {
-      name: "Marie Johnson",
-      email: "marie@acme.com",
-      school: "SOMC",
-      Cno: 1234567890,
-      updated: "3 days ago",
-      designation: "Professor",
-      status: "Inactive",
-    },
-    {
-      name: "Sarah Liu",
-      email: "sarah@acme.com",
-      school: "SOET",
-      Cno: 1234567840,
-      updated: "2 weeks ago",
-      designation: "Associate Professor",
-      status: "Active",
-    }, {
-      name: "Marie Johnson",
-      email: "marie@acme.com",
-      school: "SOMC",
-      Cno: 1234567890,
-      updated: "3 days ago",
-      designation: "Professor",
-      status: "Inactive",
-    },
-    {
-      name: "Sarah Liu",
-      email: "sarah@acme.com",
-      school: "SOET",
-      Cno: 1234567840,
-      updated: "2 weeks ago",
-      designation: "Associate Professor",
-      status: "Active",
-    }, {
-      name: "Marie Johnson",
-      email: "marie@acme.com",
-      school: "SOMC",
-      Cno: 1234567890,
-      updated: "3 days ago",
-      designation: "Professor",
-      status: "Inactive",
-    },
-    {
-      name: "Sarah Liu",
-      email: "sarah@acme.com",
-      school: "SOET",
-      Cno: 1234567840,
-      updated: "2 weeks ago",
-      designation: "Associate Professor",
-      status: "Active",
-    },
-    // Add more faculty data as needed
-  ];
+  useEffect(() => {
+    getAllFacultyDetails();
+  }, []);
 
-  // Handle edit button click
-  const handleEditClick = (person) => {
-    setSelectedFaculty(person);
+  async function getAllFacultyDetails() {
+    try {
+      const { data } = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/faculty`
+      );
+      setFaculty(data);
+    } catch (error) {
+      console.error("Error fetching faculty details:", error);
+      toast.error("Failed to fetch faculty details");
+      setFaculty([]);
+    }
+  }
+
+  const handleEditClick = (person: FacultyData) => {
+    setSelectedFaculty({ ...person });
     setIsDialogOpen(true);
   };
 
-  // Handle saving changes
-  const handleSaveChanges = () => {
-    console.log("Updated Faculty Status:", selectedFaculty);
-    // Add logic to save the updated status (e.g., API call)
-    setIsDialogOpen(false); // Close the dialog after saving
+  const handleSaveChanges = async () => {
+    if (!selectedFaculty) return;
+
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/faculty/users/${selectedFaculty.user.id}/status`,
+        {
+          status: selectedFaculty.user.status,
+        }
+      );
+
+      const updatedFaculty = faculty.map((f) =>
+        f.id === selectedFaculty.id
+          ? { ...f, user: { ...f.user, status: selectedFaculty.user.status } }
+          : f
+      );
+
+      setFaculty(updatedFaculty);
+      toast.success("Faculty status updated successfully");
+      setIsDialogOpen(false);
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      console.error(
+        "Error updating faculty status:",
+        axiosError.response?.data || error
+      );
+      toast.error(
+        axiosError.response?.data?.error || "Failed to update faculty status"
+      );
+    }
   };
+
+  const handleAddNewFaculty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+        {
+          ...newFacultyData,
+          role: "FACULTY",
+          status: "ACTIVE",
+        }
+      );
+
+      toast.success("Faculty registered successfully!");
+      setIsAddDialogOpen(false);
+      setNewFacultyData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        designation: "",
+        school: "",
+      });
+      getAllFacultyDetails(); // Refresh the faculty list
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      toast.error(axiosError.response?.data?.error || "Failed to register faculty");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setNewFacultyData({
+      ...newFacultyData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Filter faculty based on search query
+  const filteredFaculty = faculty.filter(
+    (person) =>
+      Object.values(person.user).some((value) =>
+        value?.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      ) ||
+      person.school.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.designation.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="bg-gray-100 w-full">
-      {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Faculty</h1>
         <p className="text-gray-600">Manage Faculty profiles</p>
-        {/* Statistics Cards */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Users className="h-6 w-6 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Faculty</p>
-                <p className="text-2xl font-bold">200</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-green-100 rounded-full">
-                <Users className="h-6 w-6 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Active Faculty</p>
-                <p className="text-2xl font-bold">150</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Users className="h-6 w-6 text-red-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Inactive Faculty</p>
-                <p className="text-2xl font-bold">10</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-orange-100 rounded-full">
-                <GraduationCap className="h-6 w-6 text-orange-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Courses</p>
-                <p className="text-2xl font-bold">10+</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Faculty Table */}
+
+        {/* Search Bar & Add Faculty */}
         <div className="mt-6 flex items-center justify-between">
-          <div className="relative flex-1 w-full ">
+          <div className="relative flex-1 w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" /> {/* Search icon */}
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search alumni by name, email, grad year, phone, course, or school"
+              placeholder="Search faculty by name, email, or school"
               className="w-full pl-10 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <AddNewFaculty />
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="ml-4 bg-blue-600 hover:bg-blue-700"
+          >
+            Add New Faculty
+          </Button>
         </div>
-        <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
 
+        {/* Faculty Table */}
+        <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-200">
               <tr>
@@ -166,81 +193,64 @@ export default function FacultyPage() {
                 <th className="p-4 text-left">Contact No</th>
                 <th className="p-4 text-left">Designation</th>
                 <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-left">Action</th>
               </tr>
             </thead>
             <tbody>
-              {faculty.map((person, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="p-4">{person.name}</td>
-                  <td className="p-4">{person.email}</td>
+              {filteredFaculty.map((person) => (
+                <tr
+                  key={person.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleEditClick(person)}
+                >
+                  <td className="p-4">{person.user.name}</td>
+                  <td className="p-4">{person.user.email}</td>
                   <td className="p-4">{person.school}</td>
-                  <td className="p-4">{person.Cno}</td>
+                  <td className="p-4">{person.user.phone}</td>
                   <td className="p-4">{person.designation}</td>
                   <td className="p-4">
                     <span
-                      className={`p-2 w-24 h-10 text-center rounded-xl border-solid ${person.status === "Active"
-                        ? "bg-green-400 hover:bg-green-700"
-                        : "bg-red-400 hover:bg-red-700"
-                        } border-black text-white`}
+                      className={`p-2 w-24 h-10 text-center rounded-xl border-solid ${
+                        person.user.status === "ACTIVE"
+                          ? "bg-green-400 hover:bg-green-700"
+                          : "bg-red-400 hover:bg-red-700"
+                      } border-black text-white`}
                     >
-                      {person.status}
+                      {person.user.status}
                     </span>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleEditClick(person)}
-                      className="p-2 w-12 h-10 text-white font-bold text-center rounded-xl bg-blue-500 hover:bg-blue-700"
-                    >
-                      <CiEdit size={25} />
-                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
 
-        </div>
-        <div className="mt-6 flex justify-center">
-          <nav className="flex items-center space-x-2">
-            <a href="#" className="px-4 py-2 border rounded-lg bg-blue-500 text-white hover:bg-blue-600">
-              1
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500 hover:bg-gray-100">
-              2
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500 hover:bg-gray-100">
-              3
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500 hover:bg-gray-100">
-              4
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500 hover:bg-gray-100">
-              5
-            </a>
-          </nav>
-        </div>
-        {/* Dialog for Editing Faculty Details */}
+        {/* Faculty Details Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Faculty Details</DialogTitle>
-              <DialogDescription>View and manage faculty information</DialogDescription>
+              <DialogTitle className="text-2xl font-bold">
+                Faculty Details
+              </DialogTitle>
+              <DialogDescription>
+                View and manage faculty information
+              </DialogDescription>
             </DialogHeader>
             {selectedFaculty && (
               <div className="space-y-6">
                 {/* Profile Section */}
                 <div className="flex items-center space-x-6">
                   <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                    {selectedFaculty.name
+                    {selectedFaculty.user.name
                       .split(" ")
                       .map((word: string) => word[0])
                       .join("")
                       .toUpperCase()}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold">{selectedFaculty.name}</h2>
-                    <p className="text-gray-600">{selectedFaculty.email}</p>
+                    <h2 className="text-2xl font-bold">
+                      {selectedFaculty.user.name}
+                    </h2>
+                    <p className="text-gray-600">{selectedFaculty.user.email}</p>
                   </div>
                 </div>
 
@@ -252,7 +262,7 @@ export default function FacultyPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium">{selectedFaculty.email}</p>
+                      <p className="font-medium">{selectedFaculty.user.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -261,7 +271,7 @@ export default function FacultyPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Phone</p>
-                      <p className="font-medium">{selectedFaculty.Cno}</p>
+                      <p className="font-medium">{selectedFaculty.user.phone}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
@@ -280,26 +290,29 @@ export default function FacultyPage() {
                     <div>
                       <p className="text-sm text-gray-600">Status</p>
                       <select
-                        name="status"
-                        value={selectedFaculty.status}
+                        value={selectedFaculty.user.status}
                         onChange={(e) =>
-                          setSelectedFaculty({
-                            ...selectedFaculty,
-                            status: e.target.value,
-                          })
+                          setSelectedFaculty((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  user: {
+                                    ...prev.user,
+                                    status: e.target.value as
+                                      | "ACTIVE"
+                                      | "INACTIVE",
+                                  },
+                                }
+                              : null
+                          )
                         }
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
                       >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
                       </select>
                     </div>
                   </div>
-                </div>
-
-                {/* Last Updated Section */}
-                <div className="text-sm text-gray-600">
-                  <p>Last updated: {selectedFaculty.updated}</p>
                 </div>
 
                 {/* Save Button */}
@@ -308,6 +321,117 @@ export default function FacultyPage() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Add New Faculty Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add New Faculty</DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleAddNewFaculty} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={newFacultyData.name}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={newFacultyData.email}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  value={newFacultyData.phone}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  value={newFacultyData.password}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Designation
+                </label>
+                <input
+                  type="text"
+                  name="designation"
+                  required
+                  value={newFacultyData.designation}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+              <label className="block text-sm font-medium text-gray-700">
+                  School
+                </label>
+                <input
+                  type="text"
+                  name="school"
+                  required
+                  value={newFacultyData.school}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Registering..." : "Register Faculty"}
+                </Button>
+              </div>
+            </form>
           </DialogContent>
         </Dialog>
       </main>

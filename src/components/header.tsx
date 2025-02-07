@@ -52,6 +52,18 @@ export default function Header() {
                         </Link>
                     </div>
                 )}
+                 {isLoginPage && (
+                    <div className="flex gap-3">
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold">
+                            Give
+                        </button>
+                        <Link href="/signup">
+                            <button className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold">
+                                Sign Up
+                            </button>
+                        </Link>
+                    </div>
+                )}
             </header>
         </div>
     );

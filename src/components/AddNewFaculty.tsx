@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { ChangeEvent } from "react"; // Import the ChangeEvent type
 
 export default function EditProfileDialog() {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ export default function EditProfileDialog() {
     password: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => { // Add the correct type for the event
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -30,7 +31,7 @@ export default function EditProfileDialog() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => { // Add the correct type for the form event
     e.preventDefault();
     console.log("Form Submitted", formData);
     // Add additional form submission logic here
@@ -39,12 +40,11 @@ export default function EditProfileDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="p-5 ml-12  bg-blue-500 text-white hover:bg-blue-700 hover:text-white">+ Add New Faculty</Button>
+        <Button variant="outline" className="p-5 ml-12 bg-blue-500 text-white hover:bg-blue-700 hover:text-white">+ Add New Faculty</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add New Faculty</DialogTitle>
-          
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">

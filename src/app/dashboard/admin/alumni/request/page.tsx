@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Search, Check, X, Clock, Mail, Phone, Calendar, User } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import Image from "next/image";
@@ -15,16 +15,17 @@ interface AlumniData {
   id: number;
   requestStatus: "PENDING" | "APPROVED" | "REJECTED";
   profilePhoto: string | null;
-  user: { email: string; name: string; phone: number};
+  user: { email: string; name: string; phone: number };
 }
 
 export default function AlumniRequest() {
-  const [searchQuery, setSearchQuery] = useState<string>(""); 
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedAlumni, setSelectedAlumni] = useState<AlumniData | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [alumni, setAlumni] = useState<AlumniData[]>([]);
+  const [filteredAlumni, setFilteredAlumni] = useState<AlumniData[]>([]);
 
-  // Calculate request counts from alumni data using useMemo
+  // Calculate request counts using useMemo
   const requestCounts = useMemo(() => {
     return alumni.reduce(
       (acc, curr) => {
@@ -45,17 +46,49 @@ export default function AlumniRequest() {
     );
   }, [alumni]);
 
+  // Memoize filterAlumni function
+  const filterAlumni = useCallback(() => {
+    if (!searchQuery.trim()) {
+      setFilteredAlumni(alumni);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = alumni.filter((person) => {
+      const searchableFields = [
+        person.user.name,
+        person.user.email,
+        person.batch.toString(),
+        person.user.phone.toString(),
+        person.requestStatus.toLowerCase()
+      ];
+
+      return searchableFields.some(field => 
+        field.toLowerCase().includes(query)
+      );
+    });
+
+    setFilteredAlumni(filtered);
+  }, [searchQuery, alumni]);
+
   useEffect(() => {
     getAllumniDetails();
   }, []);
 
+  // Updated useEffect with proper dependency
+  useEffect(() => {
+    filterAlumni();
+  }, [filterAlumni]);
+
   async function getAllumniDetails() {
     try {
-      const aData = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/alumni`);
+      const aData = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/alumni/alumniRequest`);
       setAlumni(aData.data);
+      setFilteredAlumni(aData.data);
     } catch (error) {
       console.error("Error fetching alumni details:", error);
       setAlumni([]);
+      setFilteredAlumni([]);
     }
   }
 
@@ -74,9 +107,7 @@ export default function AlumniRequest() {
     setIsDialogOpen(true);
   };
 
-  //Handle Approve and reject request
   const handleStatusChange = async (requestStatus: 'APPROVED' | 'REJECTED') => {
-    console.log(selectedAlumni?.id)
     try {
       if (!selectedAlumni?.id) {
         console.error('User ID is missing');
@@ -87,26 +118,16 @@ export default function AlumniRequest() {
         requestStatus: requestStatus,
       });
   
-      // Close the dialog after update
       setIsDialogOpen(false);
-  
-      // Reload the alumni list or update the state locally
       getAllumniDetails();
     } catch (error) {
       console.error("Error updating status:", error);
     }
   };
 
-  
-
-  const filteredAlumni = useMemo(() => {
-    return alumni.filter((person) =>
-      person.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      person.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      person.batch.toString().includes(searchQuery) ||
-      person.user.phone.toString().includes(searchQuery)
-    );
-  }, [alumni, searchQuery]);
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen w-full">
@@ -159,10 +180,10 @@ export default function AlumniRequest() {
             </div>
             <input
               type="text"
-              placeholder="Search alumni by name, email, grad year, phone, course, or school"
+              placeholder="Search alumni by name, email, grad year, phone, or status"
               className="w-full pl-10 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearch}
             />
           </div>
         </div>

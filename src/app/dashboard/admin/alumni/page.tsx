@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -8,43 +8,131 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Search, Users, Calendar, GraduationCap, Mail, Phone, User } from "lucide-react";
+import { Search, Users, Calendar, Mail, Phone, User } from "lucide-react";
 import axios from "axios";
 
+interface AlumniUser {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  status: "ACTIVE" | "INACTIVE";
+}
+
+interface AlumniData {
+  id: number;
+  userId: number;
+  batch: string;
+  course: string;
+  organization: string;
+  image?: string;
+  user: AlumniUser;
+}
+
+interface AlumniCount {
+  totalApproved: number;
+  active: number;
+  inactive: number;
+}
+
+// Type for nested object paths
+type NestedKeyOf<ObjectType extends object> = {
+  [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
+    ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
+    : `${Key}`;
+}[keyof ObjectType & (string | number)];
+
 export default function AlumniPage() {
-  const [selectedAlumni, setSelectedAlumni] = useState(null);
+  const [selectedAlumni, setSelectedAlumni] = useState<AlumniData | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [alumni, setAlumni] = useState([]);
-  const [alumniCount, setAlumniCount] = useState({ total: 0, active: 0, inactive: 0 });
+  const [alumni, setAlumni] = useState<AlumniData[]>([]);
+  const [filteredAlumni, setFilteredAlumni] = useState<AlumniData[]>([]);
+  const [alumniCount, setAlumniCount] = useState<AlumniCount>({
+    totalApproved: 0,
+    active: 0,
+    inactive: 0
+  });
 
-  useEffect(() => {
-    getAllumniDetails();
-    getAllumniCount();
-  }, []);
-
-  async function getAllumniDetails() {
+  // Type-safe getter function for nested object properties
+  const safeGet = useCallback(<T extends object>(
+    obj: T,
+    path: NestedKeyOf<T>,
+    defaultValue: string = ''
+  ): string => {
     try {
-      const aData = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/alumni`);
-      setAlumni(aData.data);
+      return path.split('.').reduce((current: unknown, part: string) => {
+        if (current && typeof current === 'object' && part in current) {
+          const value = (current as Record<string, unknown>)[part];
+          return value;
+        }
+        return defaultValue;
+      }, obj)?.toString() ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }, []);
+  // Filter alumni based on search query
+  const filterAlumni = useCallback(() => {
+    if (!searchQuery.trim()) {
+      setFilteredAlumni(alumni);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = alumni.filter((person) => {
+      const includes = (value: string): boolean => 
+        value.toLowerCase().includes(query);
+
+      return (
+        includes(safeGet(person, 'user.name')) ||
+        includes(safeGet(person, 'user.email')) ||
+        includes(safeGet(person, 'batch')) ||
+        includes(safeGet(person, 'user.phone')) ||
+        includes(safeGet(person, 'course')) ||
+        includes(safeGet(person, 'organization'))
+      );
+    });
+
+    setFilteredAlumni(filtered);
+  }, [searchQuery, alumni, safeGet]);
+
+  // Get alumni details from API
+  const getAllumniDetails = useCallback(async () => {
+    try {
+      const response = await axios.get<AlumniData[]>(`${process.env.NEXT_PUBLIC_API_URL}/alumni`);
+      setAlumni(response.data);
+      setFilteredAlumni(response.data);
     } catch (error) {
       console.error("Error fetching alumni details:", error);
       setAlumni([]);
+      setFilteredAlumni([]);
     }
-  }
+  }, []);
 
-  async function getAllumniCount() {
+  // Get alumni count from API
+  const getAllumniCount = useCallback(async () => {
     try {
-      const aData = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/alumni/alumni-status`);
-      setAlumniCount(aData.data);
+      const response = await axios.get<AlumniCount>(`${process.env.NEXT_PUBLIC_API_URL}/alumni/alumni-status`);
+      setAlumniCount(response.data);
     } catch (error) {
       console.error("Error fetching alumni counts:", error);
     }
-  }
+  }, []);
 
-  // Function to generate initials from name with error handling
-  const getInitials = (name) => {
+  // Initialize data on component mount
+  useEffect(() => {
+    getAllumniDetails();
+    getAllumniCount();
+  }, [getAllumniDetails, getAllumniCount]);
+
+  // Update filtered alumni when search query or alumni data changes
+  useEffect(() => {
+    filterAlumni();
+  }, [filterAlumni]);
+
+  // Get initials from name for avatar
+  const getInitials = (name: string): string => {
     if (!name || typeof name !== 'string') return '??';
     
     return name
@@ -54,25 +142,19 @@ export default function AlumniPage() {
       .toUpperCase() || '??';
   };
 
-  // Handle row click with error checking
-  const handleRowClick = (person) => {
+  const handleRowClick = (person: AlumniData) => {
     if (!person) return;
     setSelectedAlumni(person);
     setIsDialogOpen(true);
   };
 
-  // Safe access function for nested properties
-  const safeGet = (obj, path, defaultValue = '') => {
-    try {
-      return path.split('.').reduce((acc, part) => acc && acc[part], obj) ?? defaultValue;
-    } catch {
-      return defaultValue;
-    }
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
   };
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Main Content */}
+          {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni</h1>
         <p className="text-gray-600">Manage alumni profiles, track engagement, and organize events</p>
@@ -86,7 +168,7 @@ export default function AlumniPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Alumni</p>
-                <p className="text-2xl font-bold">{alumniCount.total}</p>
+                <p className="text-2xl font-bold">{alumniCount.totalApproved}</p>
               </div>
             </div>
           </div>
@@ -125,7 +207,7 @@ export default function AlumniPage() {
               placeholder="Search alumni by name, email, grad year, phone, course, or school"
               className="w-full pl-10 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearch}
             />
           </div>
         </div>
@@ -146,7 +228,7 @@ export default function AlumniPage() {
               </tr>
             </thead>
             <tbody>
-              {alumni.map((person, index) => (
+              {filteredAlumni.map((person, index) => (
                 <tr
                   key={index}
                   onClick={() => handleRowClick(person)}
@@ -190,7 +272,7 @@ export default function AlumniPage() {
           </table>
         </div>
 
-        {/* Dialog to Show Alumni Details */}
+        {/* Alumni Details Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
