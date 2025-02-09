@@ -74,7 +74,7 @@ export default function rejectedEvents() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/event/pastEvents`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/event/rejectedEvents`);
         setEvents(response.data);
         setLoading(false);
       } catch (err) {
@@ -106,7 +106,7 @@ export default function rejectedEvents() {
   return (
     <div className="bg-gray-100 w-full">
       <main className="flex-1 p-8 overflow-auto">
-        <h1 className="text-2xl font-bold ml-5 md:ml-0">Past Events</h1>
+        <h1 className="text-2xl font-bold ml-5 md:ml-0">Rejected Events</h1>
         <p className="text-gray-600">Manage Events</p>
 
         <div className="mt-6">
