@@ -1,0 +1,55 @@
+import { NextResponse, type NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  console.log("Hello from middleware");
+  const token = request.cookies.get('ams_token')?.value;
+  const userRole = request.cookies.get('ams_user_role')?.value;
+  const { pathname } = request.nextUrl;
+
+  // Public routes
+  const publicPaths = ['/login', '/register'];
+  
+  // Redirect authenticated users from public routes
+  if (token && publicPaths.includes(pathname)) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Protected routes
+  const protectedPaths = [
+    '/dashboard/admin/overview',
+    '/dashboard/admin/alumni',
+    '/dashboard/admin/alumni/request',
+    '/dashboard/admin/faculty',
+    '/dashboard/admin/event/upcoming',
+    '/dashboard/admin/event/past-event',
+    '/dashboard/admin/event/request'
+  ];
+
+  if (!token && protectedPaths.includes(pathname)) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Role-based access control
+  if (pathname.startsWith('/dashboard/admin') && userRole !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url));
+  }
+
+  return NextResponse.next();
+}
+
+// Applies middleware to specific paths
+export const config = {
+  matcher: [
+    '/',
+    '/admin/:path*',
+    '/login',
+    '/register',
+    '/dashboard/admin/overview',
+    '/dashboard/admin/alumni',
+    '/dashboard/admin/alumni/request',
+    '/dashboard/admin/faculty',
+    '/dashboard/admin/event/upcoming',
+    '/dashboard/admin/event/past-event',
+    '/dashboard/admin/event/request'
+  ]
+};
