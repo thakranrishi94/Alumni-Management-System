@@ -94,18 +94,13 @@ export default function EventRequestPage() {
   const [eventAgenda, setEventAgenda] = useState("");
   const [specialRequirements, setSpecialRequirements] = useState("");
 
-  // Fetch event requests and faculties
+  // Fetch event requests
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [eventResponse, facultyResponse] = await Promise.all([
-          axios.get<EventRequest[]>(`${process.env.NEXT_PUBLIC_API_URL}/event`),
-          axios.get<Faculty[]>(`${process.env.NEXT_PUBLIC_API_URL}/faculty/active-faculty`)
-        ]);
-
+        const eventResponse = await axios.get<EventRequest[]>(`${process.env.NEXT_PUBLIC_API_URL}/event`);
         setEventRequests(eventResponse.data);
         setFilteredEvents(eventResponse.data);
-        setFaculties(facultyResponse.data);
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch data");
@@ -120,6 +115,30 @@ export default function EventRequestPage() {
 
     fetchData();
   }, []);
+
+  // Fetch available faculties when viewing event details
+  useEffect(() => {
+    const fetchAvailableFaculties = async () => {
+      if (selectedEvent) {
+        try {
+          const formattedDate = format(new Date(selectedEvent.eventDate), 'yyyy-MM-dd');
+          const response = await axios.get<Faculty[]>(
+            `${process.env.NEXT_PUBLIC_API_URL}/faculty/available-faculty?date=${formattedDate}`
+          );
+          setFaculties(response.data);
+        } catch (err) {
+          console.error("Failed to fetch available faculties:", err);
+          toast({
+            title: "Error",
+            description: "Failed to load available faculty members",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    fetchAvailableFaculties();
+  }, [selectedEvent]);
 
   // Search functionality
   useEffect(() => {
@@ -151,35 +170,25 @@ export default function EventRequestPage() {
         return;
       }
 
-      // Log the request details for debugging
-      console.log('Request URL:', `${process.env.NEXT_PUBLIC_API_URL}/event/${eventRequestId}/status`);
-      console.log('Request Body:', { requestStatus, facultyId: selectedFacultyId });
-
-      // Ensure eventRequestId is properly formatted
       const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/event/${eventRequestId}/status`;
       
-      // Add error handling for missing API URL
       if (!process.env.NEXT_PUBLIC_API_URL) {
         throw new Error('API URL is not configured');
       }
 
-      // Make the API call with explicit headers
       const response = await axios.put(endpoint, {
         requestStatus,
         facultyId: selectedFacultyId
       }, {
         headers: {
           'Content-Type': 'application/json',
-          // Add any other required headers like authentication tokens
         }
       });
 
-      // Check if the response is successful
       if (response.status !== 200) {
         throw new Error(`API returned status ${response.status}`);
       }
 
-      // Refresh event requests
       const updatedEvents = await axios.get<EventRequest[]>(`${process.env.NEXT_PUBLIC_API_URL}/event`);
       setEventRequests(updatedEvents.data);
       setFilteredEvents(updatedEvents.data);
@@ -192,7 +201,6 @@ export default function EventRequestPage() {
     } catch (err) {
       console.error("Failed to update event status:", err);
       
-      // More detailed error logging
       if (axios.isAxiosError(err)) {
         console.error('Axios Error:', {
           status: err.response?.status,
@@ -223,6 +231,9 @@ export default function EventRequestPage() {
         return;
       }
 
+      const eventDate = new Date(selectedDate);
+      eventDate.setUTCHours(0, 0, 0, 0);
+
       const eventData = {
         adminId: 1, // Replace with actual alumni ID from auth
         alumniId: null,
@@ -230,7 +241,7 @@ export default function EventRequestPage() {
         eventTitle,
         eventDescription,
         eventType,
-        eventDate: selectedDate.toISOString(),
+        eventDate: eventDate.toISOString(),
         eventTime,
         eventDuration,
         targetAudience,
@@ -240,7 +251,6 @@ export default function EventRequestPage() {
       };
 
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event`, eventData);
-      console.log('Sending event data:', eventData);
       const response = await axios.get<EventRequest[]>(`${process.env.NEXT_PUBLIC_API_URL}/event`);
       setEventRequests(response.data);
       setFilteredEvents(response.data);
@@ -436,9 +446,14 @@ export default function EventRequestPage() {
                         <Select
                           value={selectedFacultyId?.toString() || ""}
                           onValueChange={(value) => setSelectedFacultyId(Number(value))}
+                          disabled={faculties.length === 0}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a faculty member" />
+                            <SelectValue placeholder={
+                              faculties.length === 0 
+                                ? "No available faculty" 
+                                : "Select a faculty member"
+                            } />
                           </SelectTrigger>
                           <SelectContent>
                             {faculties.map((faculty) => (
@@ -478,159 +493,159 @@ export default function EventRequestPage() {
 
       {/* Create Event Dialog */}
       <Dialog open={isCreateEventDialogOpen} onOpenChange={setIsCreateEventDialogOpen}>
-  <DialogContent className="w-full sm:max-w-2xl">
-    <DialogHeader>
-      <DialogTitle className="text-xl md:text-2xl font-bold">Create New Event</DialogTitle>
-      <DialogDescription>Fill in the event details</DialogDescription>
-    </DialogHeader>
+        <DialogContent className="w-full sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl md:text-2xl font-bold">Create New Event</DialogTitle>
+            <DialogDescription>Fill in the event details</DialogDescription>
+          </DialogHeader>
 
-    <div className="space-y-4">
-      {/* Row 1: Event Title & Event Type */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <Label htmlFor="eventTitle">Event Title</Label>
-          <Input
-            id="eventTitle"
-            value={eventTitle}
-            onChange={(e) => setEventTitle(e.target.value)}
-            className="w-full mt-1"
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <Label htmlFor="eventType">Event Type</Label>
-          <Select
-            value={eventType}
-            onValueChange={(value: EventRequest["eventType"]) => setEventType(value)}
-            required
-          >
-            <SelectTrigger className="w-full mt-1">
-              <SelectValue placeholder="Select event type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="WEBINAR">Webinar</SelectItem>
-              <SelectItem value="WORKSHOP">Workshop</SelectItem>
-              <SelectItem value="SEMINAR">Seminar</SelectItem>
-              <SelectItem value="LECTURE">Lecture</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+          <div className="space-y-4">
+            {/* Row 1: Event Title & Event Type */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <Label htmlFor="eventTitle">Event Title</Label>
+                <Input
+                  id="eventTitle"
+                  value={eventTitle}
+                  onChange={(e) => setEventTitle(e.target.value)}
+                  className="w-full mt-1"
+                  required
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label htmlFor="eventType">Event Type</Label>
+                <Select
+                  value={eventType}
+                  onValueChange={(value: EventRequest["eventType"]) => setEventType(value)}
+                  required
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select event type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WEBINAR">Webinar</SelectItem>
+                    <SelectItem value="WORKSHOP">Workshop</SelectItem>
+                    <SelectItem value="SEMINAR">Seminar</SelectItem>
+                    <SelectItem value="LECTURE">Lecture</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-      {/* Row 2: Date & Time */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <Label htmlFor="eventDate">Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full mt-1 flex justify-start items-center">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                initialFocus
+            {/* Row 2: Date & Time */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <Label htmlFor="eventDate">Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full mt-1 flex justify-start items-center">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="flex flex-col">
+                <Label htmlFor="eventTime">Time</Label>
+                <Input
+                  id="eventTime"
+                  type="time"
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                  className="w-full mt-1"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Duration & Target Audience */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <Label htmlFor="eventDuration">Duration</Label>
+                <Input
+                  id="eventDuration"
+                  value={eventDuration}
+                  onChange={(e) => setEventDuration(e.target.value)}
+                  placeholder="e.g., 2 hours"
+                  className="w-full mt-1"
+                  required
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label htmlFor="targetAudience">Target Audience</Label>
+                <Input
+                  id="targetAudience"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  className="w-full mt-1"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Row 4: Description & Agenda */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <Label htmlFor="eventDescription">Description</Label>
+                <Input
+                  id="eventDescription"
+                  value={eventDescription}
+                  onChange={(e) => setEventDescription(e.target.value)}
+                  className="w-full mt-1"
+                  required
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label htmlFor="eventAgenda">Agenda</Label>
+                <Input
+                  id="eventAgenda"
+                  value={eventAgenda}
+                  onChange={(e) => setEventAgenda(e.target.value)}
+                  className="w-full mt-1"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Special Requirements */}
+            <div className="flex flex-col">
+              <Label htmlFor="specialRequirements">Special Requirements</Label>
+              <Input
+                id="specialRequirements"
+                value={specialRequirements}
+                onChange={(e) => setSpecialRequirements(e.target.value)}
+                className="w-full mt-1"
+                required
               />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="flex flex-col">
-          <Label htmlFor="eventTime">Time</Label>
-          <Input
-            id="eventTime"
-            type="time"
-            value={eventTime}
-            onChange={(e) => setEventTime(e.target.value)}
-            className="w-full mt-1"
-            required
-          />
-        </div>
-      </div>
+            </div>
 
-      {/* Row 3: Duration & Target Audience */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <Label htmlFor="eventDuration">Duration</Label>
-          <Input
-            id="eventDuration"
-            value={eventDuration}
-            onChange={(e) => setEventDuration(e.target.value)}
-            placeholder="e.g., 2 hours"
-            className="w-full mt-1"
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <Label htmlFor="targetAudience">Target Audience</Label>
-          <Input
-            id="targetAudience"
-            value={targetAudience}
-            onChange={(e) => setTargetAudience(e.target.value)}
-            className="w-full mt-1"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Row 4: Description & Agenda */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <Label htmlFor="eventDescription">Description</Label>
-          <Input
-            id="eventDescription"
-            value={eventDescription}
-            onChange={(e) => setEventDescription(e.target.value)}
-            className="w-full mt-1"
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <Label htmlFor="eventAgenda">Agenda</Label>
-          <Input
-            id="eventAgenda"
-            value={eventAgenda}
-            onChange={(e) => setEventAgenda(e.target.value)}
-            className="w-full mt-1"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Special Requirements */}
-      <div className="flex flex-col">
-        <Label htmlFor="specialRequirements">Special Requirements</Label>
-        <Input
-          id="specialRequirements"
-          value={specialRequirements}
-          onChange={(e) => setSpecialRequirements(e.target.value)}
-          className="w-full mt-1"
-          required
-        />
-      </div>
-
-      {/* Buttons */}
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button
-          onClick={() => setIsCreateEventDialogOpen(false)}
-          variant="outline"
-          className="border-gray-300"
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleCreateEvent}
-          className="bg-blue-600 hover:bg-blue-500"
-        >
-          Create Event
-        </Button>
-      </div>
-    </div>
-  </DialogContent>
-</Dialog>
+            {/* Buttons */}
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                onClick={() => setIsCreateEventDialogOpen(false)}
+                variant="outline"
+                className="border-gray-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateEvent}
+                className="bg-blue-600 hover:bg-blue-500"
+              >
+                Create Event
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
