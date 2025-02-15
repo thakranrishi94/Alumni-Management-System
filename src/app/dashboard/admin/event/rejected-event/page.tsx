@@ -63,7 +63,7 @@ const getHostName = (event: Event): string => {
   return event.adminId ? 'Admin' : 'Unknown Host';
 };
 
-export default function rejectedEvents() {
+export default function RejectedEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -77,8 +77,8 @@ export default function rejectedEvents() {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/event/rejectedEvents`);
         setEvents(response.data);
         setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch events:", err);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
         setError("Failed to load events");
         setLoading(false);
       }

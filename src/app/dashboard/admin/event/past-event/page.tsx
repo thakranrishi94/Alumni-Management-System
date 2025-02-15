@@ -63,7 +63,7 @@ const getHostName = (event: Event): string => {
   return event.adminId ? 'Admin' : 'Unknown Host';
 };
 
-export default function rejectedEvents() {
+export default function PastEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);

@@ -108,7 +108,7 @@ export default function LoginPage() {
           className="hidden md:flex md:flex-1 bg-cover bg-center ml-10 h-150 w-full md:w-2/3 lg:w-1/2 rounded-lg"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('krmu.jpg')",
+              "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url('/krmu.jpg')",
           }}
           role="img"
           aria-label="Campus background image"

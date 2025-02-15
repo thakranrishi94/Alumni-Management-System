@@ -1,21 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
-
+import { useRouter } from "next/navigation";
 type MenuItem = {
   title: string;
   children: { name: string; link: string }[];
 };
-
 type SideBarProps = {
   children: React.ReactNode;
   sidebarMenus: MenuItem[];
   title: string;
 };
-
 const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -28,7 +26,6 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
       setIsMobile(window.innerWidth < 768);
       setIsSidebarOpen(window.innerWidth >= 768);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -37,8 +34,7 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   useEffect(() => {
     if (pathname) {
       for (const menu of sidebarMenus) {
-        const matchingChild = menu.children.find((child) => child.link === pathname);
-        if (matchingChild) {
+        if (menu.children.some((child) => child.link === pathname)) {
           setOpenMenu(menu.title);
           setActiveMenu(menu.title);
           break;
@@ -50,8 +46,7 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const toggleMenu = (title: string | null) => {
     setOpenMenu((prev) => (prev === title ? null : title));
   };
-
-  const router=useRouter();
+const router=useRouter();
   const handleLogout = () => {
     Cookies.remove("ams_token");
     Cookies.remove("ams_user_role");
@@ -59,29 +54,13 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   };
 
   return (
-    <section className="flex min-h-screen bg-gray-50">
-      {/* Mobile Menu Button */}
-      {isMobile && (
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden"
-          aria-label="Toggle menu"
-        >
-          <span className="sr-only">Toggle menu</span>
-          ☰
-        </button>
-      )}
-
-      {/* Sidebar */}
+    <section className="flex">
+      {/* ✅ Sticky Sidebar */}
       <aside
-        className={`
-          fixed md:static w-64 h-screen bg-white shadow-md
-          transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
-          md:translate-x-0 z-40 flex flex-col
-        `}
+        className={`fixed top-0 left-0 h-screen w-64 bg-white shadow-md flex flex-col transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 z-40`}
       >
-        {/* Header */}
         <div className="p-6">
           <div className="flex flex-col items-center">
             <div className="h-40 w-30 p-5 relative">
@@ -98,24 +77,21 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-grow mt-4" role="navigation">
+        {/* ✅ Scrollable Menu Section */}
+        <nav className="flex-grow overflow-y-auto">
           {sidebarMenus.map((menu) => (
             <div key={menu.title}>
               <button
                 onClick={() => {
-                  if (menu.children.length > 0) {
-                    toggleMenu(menu.title);
-                  }
+                  if (menu.children.length > 0) toggleMenu(menu.title);
                   setActiveMenu(menu.title);
                 }}
-                className={`
-                  w-full px-6 py-3 text-left flex justify-between items-center
-                  ${activeMenu === menu.title ? "bg-gray-200 font-semibold" : "hover:bg-gray-100"}
-                `}
+                className={`w-full px-6 py-3 text-left flex justify-between items-center ${
+                  activeMenu === menu.title ? "bg-gray-200 font-semibold" : "hover:bg-gray-100"
+                }`}
                 aria-expanded={openMenu === menu.title}
               >
-                <span>{menu.title}</span>
+                {menu.title}
                 {menu.children.length > 0 && (
                   <span aria-hidden="true">{openMenu === menu.title ? "▼" : "►"}</span>
                 )}
@@ -139,38 +115,22 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
           ))}
         </nav>
 
-        {/* Footer Actions */}
-        <div className="mt-auto">
-          {/* Profile Update Link */}
-          <div className="p-4 border-t border-gray-200">
-            <Link
-              href="/profile-update"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <span className="mr-2" aria-hidden="true">👤</span>
-              <span>Update Profile</span>
-            </Link>
-          </div>
-
-          {/* Logout Button */}
-          <div className="p-4 border-t border-gray-200">
-            <button
-              onClick={handleLogout}
-              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
-            >
-              <span className="mr-2" aria-hidden="true">🚪</span>
-              <span>Logout</span>
-            </button>
-          </div>
+        {/* ✅ Logout Button at Bottom */}
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+          >
+            <span className="mr-2" aria-hidden="true">🚪</span>
+            <span>Logout</span>
+          </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto">
-        {children}
-      </main>
+      {/* ✅ Main Content (Pushes Right) */}
+      <main className="ml-64 flex-1 overflow-y-auto p-6">{children}</main>
 
-      {/* Mobile Backdrop */}
+      {/* ✅ Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"

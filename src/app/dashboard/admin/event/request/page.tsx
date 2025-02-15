@@ -16,11 +16,7 @@ import {
   Clock,
   Plus,
   Search,
-  Type,
-  Users,
-  FileText,
   ListTodo,
-  MessageSquare,
   Target,
   AlertCircle
 } from "lucide-react";
@@ -30,9 +26,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 // Types
 type Faculty = {
@@ -102,8 +99,8 @@ export default function EventRequestPage() {
         setEventRequests(eventResponse.data);
         setFilteredEvents(eventResponse.data);
         setLoading(false);
-      } catch (err) {
-        setError("Failed to fetch data");
+      } catch (error) {
+        setError(`${error}`);
         setLoading(false);
         toast({
           title: "Error",
@@ -126,8 +123,8 @@ export default function EventRequestPage() {
             `${process.env.NEXT_PUBLIC_API_URL}/faculty/available-faculty?date=${formattedDate}`
           );
           setFaculties(response.data);
-        } catch (err) {
-          console.error("Failed to fetch available faculties:", err);
+        } catch (error) {
+          console.error("Failed to fetch available faculties:", error);
           toast({
             title: "Error",
             description: "Failed to load available faculty members",
@@ -145,7 +142,7 @@ export default function EventRequestPage() {
     const filtered = eventRequests.filter(event =>
       event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.eventType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.alumni.user.name.toLowerCase().includes(searchQuery.toLowerCase())
+      (event.alumni?.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
     );
     setFilteredEvents(filtered);
   }, [searchQuery, eventRequests]);
@@ -198,15 +195,15 @@ export default function EventRequestPage() {
         title: "Success",
         description: `Event ${requestStatus.toLowerCase()} successfully`,
       });
-    } catch (err) {
-      console.error("Failed to update event status:", err);
+    } catch (error) {
+      console.error("Failed to update event status:", error);
       
-      if (axios.isAxiosError(err)) {
+      if (axios.isAxiosError(error)) {
         console.error('Axios Error:', {
-          status: err.response?.status,
-          statusText: err.response?.statusText,
-          data: err.response?.data,
-          config: err.config
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: error.config
         });
       }
 
@@ -235,7 +232,7 @@ export default function EventRequestPage() {
       eventDate.setUTCHours(0, 0, 0, 0);
 
       const eventData = {
-        adminId: 1, // Replace with actual alumni ID from auth
+        //adminId: 17,
         alumniId: null,
         facultyId: null,
         eventTitle,
@@ -249,8 +246,10 @@ export default function EventRequestPage() {
         specialRequirements,
         requestStatus: "PENDING" as const,
       };
-
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event`, eventData);
+      const token=Cookies.get('ams_token')
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event`, eventData,{headers:{
+        Authorization:`Bearer ${token}`
+      }});
       const response = await axios.get<EventRequest[]>(`${process.env.NEXT_PUBLIC_API_URL}/event`);
       setEventRequests(response.data);
       setFilteredEvents(response.data);
@@ -271,8 +270,8 @@ export default function EventRequestPage() {
       setTargetAudience("");
       setEventAgenda("");
       setSpecialRequirements("");
-    } catch (err) {
-      console.error("Failed to create event:", err);
+    } catch (error) {
+      console.error("Failed to create event:", error);
       toast({
         title: "Error",
         description: "Failed to create event",
