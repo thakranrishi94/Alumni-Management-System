@@ -28,8 +28,9 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 // import { cn } from "@/lib/utils";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 import Cookies from "js-cookie";
+import { useToast } from "@/hooks/use-toast";
 
 // Types
 type Faculty = {
@@ -79,7 +80,8 @@ export default function EventRequestPage() {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [selectedFacultyId, setSelectedFacultyId] = useState<number | null>(null);
   const [updateLoading, setUpdateLoading] = useState(false);
-
+  const { toast } = useToast();
+  
   // Form states
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -111,7 +113,7 @@ export default function EventRequestPage() {
     };
 
     fetchData();
-  }, []);
+  }, [toast]);
 
   // Fetch available faculties when viewing event details
   useEffect(() => {
@@ -135,7 +137,7 @@ export default function EventRequestPage() {
     };
 
     fetchAvailableFaculties();
-  }, [selectedEvent]);
+  }, [selectedEvent,toast]);
 
   // Search functionality
   useEffect(() => {
@@ -219,10 +221,57 @@ export default function EventRequestPage() {
 
   const handleCreateEvent = async () => {
     try {
+      // Validation checks
+      const requiredFields = {
+        'Event Title': eventTitle,
+        'Event Description': eventDescription,
+        'Event Type': eventType,
+        'Event Date': selectedDate,
+        'Event Time': eventTime,
+        'Event Duration': eventDuration,
+        'Target Audience': targetAudience,
+        'Event Agenda': eventAgenda,
+        'Special Requirements': specialRequirements
+      };
+
+      // Check each required field
+      for (const [fieldName, value] of Object.entries(requiredFields)) {
+        if (!value || value.toString().trim() === '') {
+          toast({
+            title: `${fieldName}`,
+            description: `${fieldName} is required`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Additional specific validations
       if (!selectedDate) {
         toast({
-          title: "Error",
+          title: "Validation Error",
           description: "Please select a date",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Time format validation
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(eventTime)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid time in HH:MM format",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Duration format suggestion
+      if (!eventDuration.includes('hour') && !eventDuration.includes('min')) {
+        toast({
+          title: "Validation Error",
+          description: "Please specify duration in hours or minutes (e.g., '2 hours' or '30 minutes')",
           variant: "destructive",
         });
         return;
@@ -230,9 +279,8 @@ export default function EventRequestPage() {
 
       const eventDate = new Date(selectedDate);
       eventDate.setUTCHours(0, 0, 0, 0);
-
+  
       const eventData = {
-        //adminId: 17,
         alumniId: null,
         facultyId: null,
         eventTitle,

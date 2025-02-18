@@ -22,7 +22,10 @@ export function middleware(request: NextRequest) {
     '/dashboard/admin/faculty',
     '/dashboard/admin/event/upcoming',
     '/dashboard/admin/event/past-event',
-    '/dashboard/admin/event/request'
+    '/dashboard/admin/event/request',
+    '/dashboard/faculty/event/upcoming',
+     '/dashboard/faculty/overview',
+    '/dashboard/faculty/event/past-event'
   ];
 
   if (!token && protectedPaths.includes(pathname)) {
@@ -50,6 +53,9 @@ export const config = {
     '/dashboard/admin/faculty',
     '/dashboard/admin/event/upcoming',
     '/dashboard/admin/event/past-event',
-    '/dashboard/admin/event/request'
+    '/dashboard/admin/event/request',
+    '/dashboard/faculty/event/upcoming',
+    '/dashboard/faculty/overview',
+    '/dashboard/faculty/event/past-event'
   ]
 };

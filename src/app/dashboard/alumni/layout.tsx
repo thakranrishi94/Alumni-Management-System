@@ -8,12 +8,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body suppressHydrationWarning>
           <SideBar title="Alumni Portal" sidebarMenus={AdminMenu}>
             {children}
           </SideBar>
-      </body>
-    </html>
   );
 }

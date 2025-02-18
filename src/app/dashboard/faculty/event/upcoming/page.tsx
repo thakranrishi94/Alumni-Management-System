@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo } from "lucide-react";
 import Cookies from "js-cookie";
+import toast from "react-hot-toast";
 
 // Update interface to make relationships optional
 interface Event {
@@ -82,6 +83,7 @@ export default function UpcomingEvents() {
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [eventLink,setEventLink]=useState("")
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -134,9 +136,80 @@ export default function UpcomingEvents() {
       setEventLink(""); // Ensure it's empty when no link is assigned
     }
   }, [selectedEvent]);
-  const handleUpdateLink=()=>{
-    console.log("Event Link")
-  }
+
+
+  const handleUpdateLink = async () => {
+    if (!selectedEvent) return;
+
+    try {
+      setUpdateLoading(true);
+
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        throw new Error('API URL is not configured');
+      }
+
+      const token = Cookies.get('ams_token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/event/${selectedEvent.eventRequestId}/link`;
+      
+      const response = await axios.put(
+        endpoint,
+        { eventLink },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`API returned status ${response.status}`);
+      }
+
+      // Fetch updated events
+      const updatedEvents = await axios.get<Event[]>(
+        `${process.env.NEXT_PUBLIC_API_URL}/event/events/upcoming`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      setEvents(updatedEvents.data);
+      
+      // Update the selected event with the new link
+      setSelectedEvent(prev => prev ? { ...prev, eventLink } : null);
+
+      toast({
+        title: "Success",
+        description: "Event link updated successfully",
+      });
+    } catch (err) {
+      console.error("Failed to update event link:", err);
+      
+      if (axios.isAxiosError(err)) {
+        console.error('Axios Error:', {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          config: err.config
+        });
+      }
+
+      toast({
+        title: "Error",
+        description: "Failed to update event link. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
   // Updated search to handle optional fields
   const filteredEvents = events && events.filter(event =>
     event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -341,12 +414,16 @@ export default function UpcomingEvents() {
               onChange={(e) => setEventLink(e.target.value)}
               className="border p-2 rounded w-full"
               placeholder="Enter event link..."
+              disabled={updateLoading}
             />
             <button
               onClick={handleUpdateLink}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed ${
+                updateLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={updateLoading}
             >
-              Update
+             {updateLoading ? 'Updating...' : 'Update'}
             </button>
           </div>
         </div>

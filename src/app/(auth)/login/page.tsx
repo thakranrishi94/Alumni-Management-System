@@ -62,10 +62,12 @@ export default function LoginPage() {
       );
       
       if (response.data.user) {
-        const expiryDays = rememberMe ? 7 : 1;
+        // const expiryDays = rememberMe ? 7 : 1;
         
-        Cookies.set('ams_user_role', response.data.user.role, { expires: expiryDays });
-        Cookies.set('ams_token', response.data.token, { expires: expiryDays });
+        // Cookies.set('ams_user_role', response.data.user.role, { expires: expiryDays });
+        // Cookies.set('ams_token', response.data.token, { expires: expiryDays });
+        Cookies.set('ams_user_role', response.data.user.role);
+        Cookies.set('ams_token', response.data.token);
 
         const routes = {
           'ADMIN': '/dashboard/admin/overview',
@@ -86,9 +88,29 @@ export default function LoginPage() {
       console.log("Login error:", error);
     
       let errorMessage = "Invalid credentials. Please check your email and password.";
+      let requestStatus = null;
     
-      if (axios.isAxiosError(error)) {
-        errorMessage = error.response?.data?.message || errorMessage;
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data?.error || errorMessage;
+        requestStatus = error.response.data?.requestStatus;
+        
+        // If the error is specifically about alumni approval status
+        if (requestStatus) {
+          let statusMessage;
+          
+          switch (requestStatus) {
+            case 'PENDING':
+              statusMessage = "Your account is pending approval by an administrator.";
+              break;
+            case 'REJECTED':
+              statusMessage = "Your account request has been rejected. Please contact administration.";
+              break;
+            default:
+              statusMessage = "There's an issue with your account status.";
+          }
+          
+          errorMessage = statusMessage;
+        }
       }
     
       toast({

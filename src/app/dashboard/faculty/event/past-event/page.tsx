@@ -82,12 +82,12 @@ export default function PastEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [eventLink, setEventLink] = useState("")
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const token = Cookies.get('ams_token');
+        console.log(token)
 
         if (!token) {
           setError("Authentication required");
@@ -128,16 +128,7 @@ export default function PastEvents() {
     setSelectedEvent(event);
     setIsDialogOpen(true);
   };
-  useEffect(() => {
-    if (selectedEvent?.eventLink) {
-      setEventLink(selectedEvent.eventLink);
-    } else {
-      setEventLink(""); // Ensure it's empty when no link is assigned
-    }
-  }, [selectedEvent]);
-  const handleUpdateLink = () => {
-    console.log("Event Link")
-  }
+
   // Updated search to handle optional fields
   const filteredEvents = events && events.filter(event =>
     event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -358,7 +349,6 @@ export default function PastEvents() {
                   </div>        
               </div>
               </div>
-
             )}
           </DialogContent>
         </Dialog>

@@ -16,7 +16,7 @@ type SideBarProps = {
   title: string;
 };
 
-const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
+const AlumniSideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -182,4 +182,4 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   );
 };
 
-export default SideBar;
+export default AlumniSideBar;

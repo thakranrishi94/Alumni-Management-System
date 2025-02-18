@@ -1,6 +1,6 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -8,348 +8,505 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { Calendar, User, BookOpen, Clock, Plus, CheckCircle, Link } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo, Plus, CalendarIcon } from "lucide-react";
+import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
-export default function UpcomingEvents() {
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState<boolean>(false);
-  const [eventName, setEventName] = useState("");
-  const [title, setTitle] = useState("");
-  const [eventType, setEventType] = useState("");
+
+//Interface of form data
+type EventRequest = {
+  eventRequestId: number;
+  alumniId: number;
+  facultyId: number | null;
+  eventTitle: string;
+  eventDescription: string;
+  eventType: "WEBINAR" | "WORKSHOP" | "SEMINAR" | "LECTURE";
+  eventDate: string;
+  eventTime: string;
+  eventDuration: string;
+  eventLink: string | null;
+  targetAudience: string;
+  requestStatus: "PENDING" | "APPROVED" | "REJECTED";
+  eventAgenda: string;
+  specialRequirements: string;
+  alumni: {
+    user: {
+      name: string;
+    };
+  };
+  faculty?: {
+    user: {
+      name: string;
+    };
+  };
+};
+
+// Update interface to make relationships optional
+interface Event {
+  eventRequestId: number;
+  eventTitle: string;
+  eventDescription: string;
+  eventType: string;
+  eventDate: string;
+  eventTime: string;
+  eventDuration: string;
+  eventLink: string | null;
+  eventAgenda: string;
+  alumni?: {
+    user: {
+      name: string;
+    };
+  } | null;
+  faculty?: {
+    user: {
+      name: string;
+    };
+  } | null;
+  adminId?: number;
+}
+
+//error interface
+interface ApiError {
+  response?: {
+    status?: number;
+    data?: {
+      error?: string;
+    };
+  };
+  message?: string;
+}
+
+// Utility functions
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString);
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  return `${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+// Helper function to get event host name
+const getHostName = (event: Event): string => {
+  if (event.alumni?.user.name) {
+    return event.alumni.user.name;
+  }
+  return event.adminId ? 'Admin' : 'Unknown Host';
+};
+
+// Component for the Events Table
+const EventsTable = ({ 
+  events, 
+  searchQuery,
+  onRowClick 
+}: { 
+  events: Event[], 
+  searchQuery: string,
+  onRowClick: (event: Event) => void 
+}) => {
+  const filteredEvents = events.filter(event =>
+    event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.eventType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    getHostName(event).toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.eventAgenda.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <span>Event Name</span>
+                </div>
+              </th>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <ListTodo className="h-4 w-4 text-purple-500" />
+                  <span>Agenda</span>
+                </div>
+              </th>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-green-500" />
+                  <span>Host</span>
+                </div>
+              </th>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <BookOpen className="h-4 w-4 text-purple-500" />
+                  <span>Faculty</span>
+                </div>
+              </th>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <Tag className="h-4 w-4 text-red-500" />
+                  <span>Type</span>
+                </div>
+              </th>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <span>Date</span>
+                </div>
+              </th>
+              <th className="p-3 text-left text-gray-700 font-semibold">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-indigo-500" />
+                  <span>Time</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredEvents.map((event, index) => (
+              <tr
+                key={event.eventRequestId}
+                onClick={() => onRowClick(event)}
+                className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  } hover:bg-gray-100 transition-colors cursor-pointer`}
+              >
+                <td className="p-3 text-gray-700">{event.eventTitle}</td>
+                <td className="p-3 text-gray-700">{event.eventAgenda}</td>
+                <td className="p-3 text-gray-700">{getHostName(event)}</td>
+                <td className="p-3 text-gray-700">{event.faculty?.user.name || 'Not assigned'}</td>
+                <td className="p-3 text-gray-700">
+                  <span className={`px-2 py-1 text-sm rounded-full ${event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
+                      event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
+                        event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
+                          "bg-yellow-100 text-yellow-800"
+                    }`}>
+                    {event.eventType}
+                  </span>
+                </td>
+                <td className="p-3 text-gray-700">{formatDate(event.eventDate)}</td>
+                <td className="p-3 text-gray-700">{formatTime(event.eventTime)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// Component for the Event Details Dialog
+const EventDetailsDialog = ({ 
+  isOpen, 
+  onOpenChange, 
+  selectedEvent 
+}: { 
+  isOpen: boolean, 
+  onOpenChange: (open: boolean) => void, 
+  selectedEvent: Event | null 
+}) => {
+  if (!selectedEvent) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">Event Details</DialogTitle>
+          <DialogDescription>View and update event information</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-6">
+          <div className="flex items-center space-x-6">
+            <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+              {selectedEvent.eventTitle
+                .split(" ")
+                .map((word) => word[0])
+                .join("")
+                .toUpperCase()}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>
+              <p className="text-gray-600">{selectedEvent.eventType}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <User className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Host</p>
+                <p className="font-medium">{getHostName(selectedEvent)}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-full">
+                <BookOpen className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Faculty</p>
+                <p className="font-medium">{selectedEvent.faculty?.user.name || "Not assigned"}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <Calendar className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Date & Time</p>
+                <p className="font-medium">
+                  {formatDate(selectedEvent.eventDate)} {formatTime(selectedEvent.eventTime)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <Clock className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Duration</p>
+                <p className="font-medium">{selectedEvent.eventDuration}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-start space-x-4">
+              <div className="p-3 bg-indigo-100 rounded-full">
+                <ListTodo className="h-5 w-5 text-indigo-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Agenda</p>
+                <p className="font-medium">{selectedEvent.eventAgenda}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-start space-x-4">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <FileText className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Description</p>
+                <p className="font-medium">{selectedEvent.eventDescription}</p>
+              </div>
+            </div>
+          </div>
+
+          {selectedEvent.eventLink && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-600">Event Link:</p>
+              <a href={selectedEvent.eventLink} target="_blank" rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-600">
+                {selectedEvent.eventLink}
+              </a>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Component for the Create Event Dialog
+const CreateEventDialog = ({ 
+  isOpen, 
+  onOpenChange, 
+  onEventCreated 
+}: { 
+  isOpen: boolean, 
+  onOpenChange: (open: boolean) => void, 
+  onEventCreated: () => void 
+}) => {
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventType, setEventType] = useState<EventRequest["eventType"]>("WEBINAR");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [prerequisite, setPrerequisite] = useState("");
-  const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState<boolean>(false);
+  const [eventTime, setEventTime] = useState("");
+  const [eventDuration, setEventDuration] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [eventAgenda, setEventAgenda] = useState("");
+  const [specialRequirements, setSpecialRequirements] = useState("");
+  const { toast } = useToast();
 
-  const event = [
-    {
-      EventName: "Tech Conference 2023",
-      HostName: "Marie Johnson",
-      FacultyName: "Dr. John Doe",
-      Title: "Future of AI",
-      Type: "Conference",
-      Date: "2023-10-15",
-      MeetLink:"https://meet.google.com/frg-idkk-hcv",
-    },
-    {
-      EventName: "Workshop on Web Development",
-      HostName: "Sarah Liu",
-      FacultyName: "Prof. Jane Smith",
-      Title: "Advanced JavaScript",
-      Type: "Workshop",
-      Date: "2023-11-05",
-      MeetLink:"",
-    },
-    {
-      EventName: "Seminar on Cybersecurity",
-      HostName: "Alex Grimes",
-      FacultyName: "Dr. Emily Brown",
-      Title: "Cybersecurity Trends",
-      Type: "Seminar",
-      Date: "2023-09-20",
-      MeetLink:"",
-    },
-    {
-      EventName: "Hackathon 2023",
-      HostName: "Chris Davis",
-      FacultyName: "Prof. Michael Green",
-      Title: "Innovate and Build",
-      Type: "Hackathon",
-      Date: "2023-12-10",
-      MeetLink:"https://meet.google.com/hes-idkk-fde",
-    },
-    {
-      EventName: "Alumni Meet 2023",
-      HostName: "Tara Smith",
-      FacultyName: "Dr. Susan White",
-      Title: "Networking and Collaboration",
-      Type: "Networking Event",
-      Date: "2023-08-25",
-      MeetLink:"https://meet.google.com/hes-idkk-hkj",
-    },
-  ];
-  const handleRowClick = (event) => {
-    setSelectedEvent(event);
-    setIsDialogOpen(true);
-  };
+  const handleCreateEvent = async () => {
+    try {
+      // Validation checks
+      const requiredFields = {
+        'Event Title': eventTitle,
+        'Event Description': eventDescription,
+        'Event Type': eventType,
+        'Event Date': selectedDate,
+        'Event Time': eventTime,
+        'Event Duration': eventDuration,
+        'Target Audience': targetAudience,
+        'Event Agenda': eventAgenda,
+        'Special Requirements': specialRequirements
+      };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setSelectedEvent(null);
-  };
+      // Check each required field
+      for (const [fieldName, value] of Object.entries(requiredFields)) {
+        if (!value || value.toString().trim() === '') {
+          toast({
+            title: `${fieldName}`,
+            description: `${fieldName} is required`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
 
-  const handleCreateEvent = () => {
-    setIsCreateEventDialogOpen(true);
-  };
+      // Additional specific validations
+      if (!selectedDate) {
+        toast({
+          title: "Validation Error",
+          description: "Please select a date",
+          variant: "destructive",
+        });
+        return;
+      }
 
-  const handleCloseCreateEventDialog = () => {
-    setIsCreateEventDialogOpen(false);
-    setEventName("");
-    setTitle("");
-    setEventType("");
-    setSelectedDate(undefined);
-    setPrerequisite("");
-  };
+      // Time format validation
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(eventTime)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid time in HH:MM format",
+          variant: "destructive",
+        });
+        return;
+      }
 
-  const handleSubmitCreateEvent = () => {
-    if (!eventName || !title || !eventType || !selectedDate || !prerequisite) {
-      alert("Please fill all the fields");
-      return;
+      // Duration format suggestion
+      if (!eventDuration.includes('hour') && !eventDuration.includes('min')) {
+        toast({
+          title: "Validation Error",
+          description: "Please specify duration in hours or minutes (e.g., '2 hours' or '30 minutes')",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const eventDate = new Date(selectedDate);
+      eventDate.setUTCHours(0, 0, 0, 0);
+  
+      const eventData = {
+        alumniId: null,
+        facultyId: null,
+        eventTitle,
+        eventDescription,
+        eventType,
+        eventDate: eventDate.toISOString(),
+        eventTime,
+        eventDuration,
+        targetAudience,
+        eventAgenda,
+        specialRequirements,
+        requestStatus: "PENDING" as const,
+      };
+      
+      const token = Cookies.get('ams_token');
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event`, eventData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      onOpenChange(false);
+      toast({
+        title: "Success",
+        description: "Event created successfully",
+      });
+
+      // Reset form
+      setEventTitle("");
+      setEventDescription("");
+      setEventType("WEBINAR");
+      setSelectedDate(undefined);
+      setEventTime("");
+      setEventDuration("");
+      setTargetAudience("");
+      setEventAgenda("");
+      setSpecialRequirements("");
+      
+      // Notify parent component to refresh events
+      onEventCreated();
+    } catch (error) {
+      console.error("Failed to create event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create event",
+        variant: "destructive",
+      });
     }
-
-    console.log("New Event Created:", {
-      eventName,
-      title,
-      eventType,
-      selectedDate,
-      prerequisite,
-    });
-
-    // Simulate sending an email notification
-    sendEmailNotification();
-
-    handleCloseCreateEventDialog();
-    setIsSuccessPopupOpen(true);
-  };
-
-  const sendEmailNotification = () => {
-    // Simulate sending an email
-    console.log("Email notification sent to your email address.");
   };
 
   return (
-    <div className="bg-gray-100 w-full">
-      <main className="flex-1 p-8 overflow-auto">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">Upcoming Events</h1>
-            <p className="text-gray-600">Manage Events</p>
-          </div>
-          <Button onClick={handleCreateEvent} className="bg-blue-600 hover:bg-blue-500">
-            <Plus className="mr-2 h-4 w-4" /> Create Event
-          </Button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="w-full sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl md:text-2xl font-bold">Create New Event</DialogTitle>
+          <DialogDescription>Fill in the event details</DialogDescription>
+        </DialogHeader>
 
-        <div className="mt-6">
-          <Input
-            type="text"
-            placeholder="Search events by name, type, or date"
-            className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
-          />
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {event.map((event, index) => (
-            <div
-              key={index}
-              onClick={() => handleRowClick(event)}
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <Calendar className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold">{event.EventName}</h2>
-                  <p className="text-gray-600">{event.Type}</p>
-                </div>
-              </div>
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-gray-500" />
-                  <p className="text-gray-700">
-                    <strong>Host:</strong> {event.HostName}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <BookOpen className="h-5 w-5 text-gray-500" />
-                  <p className="text-gray-700">
-                    <strong>Faculty:</strong> {event.FacultyName}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-gray-500" />
-                  <p className="text-gray-700">
-                    <strong>Date:</strong> {event.Date}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 flex justify-center">
-          <nav className="flex items-center space-x-2">
-            <a href="#" className="px-4 py-2 border rounded-lg">
-              1
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              2
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              3
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              4
-            </a>
-            <a href="#" className="px-4 py-2 border rounded-lg text-gray-500">
-              5
-            </a>
-          </nav>
-        </div>
-      </main>
-
-      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Event Details</DialogTitle>
-            <DialogDescription>View and manage event information</DialogDescription>
-          </DialogHeader>
-          {selectedEvent && (
-            <div className="space-y-6">
-              <div className="flex items-center space-x-6">
-                <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                  {selectedEvent.EventName.split(" ")
-                    .map((word: string) => word[0])
-                    .join("")
-                    .toUpperCase()}
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold">{selectedEvent.EventName}</h2>
-                  <p className="text-gray-600">{selectedEvent.Type}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <User className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Host Name</p>
-                    <p className="font-medium">{selectedEvent.HostName}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <BookOpen className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Faculty Name</p>
-                    <p className="font-medium">{selectedEvent.FacultyName}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-purple-100 rounded-full">
-                    <Calendar className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Date</p>
-                    <p className="font-medium">{selectedEvent.Date}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-yellow-100 rounded-full">
-                    <User className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Type</p>
-                    <p className="font-medium">{selectedEvent.Type}</p>
-                  </div>
-                </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-purple-100 rounded-full">
-                    <BookOpen className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Title</p>
-                    <p className="font-medium">{selectedEvent.Title}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-purple-100 rounded-full">
-                    <Link   className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Meeting Link</p>
-                    <p className="font-medium">{selectedEvent.MeetLink? selectedEvent.MeetLink : "Not Assigned"}</p>
-                  </div>
-                </div>
-              </div>
-              </div>
-              
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCreateEventDialogOpen} onOpenChange={handleCloseCreateEventDialog}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Create New Event</DialogTitle>
-            <DialogDescription>Fill in the details to create a new event</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div>
-              <Label htmlFor="eventName">Event Name</Label>
+        <div className="space-y-4">
+          {/* Row 1: Event Title & Event Type */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventTitle">Event Title</Label>
               <Input
-                id="eventName"
-                value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
-                placeholder="Enter event name"
+                id="eventTitle"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+                className="w-full mt-1"
+                required
               />
             </div>
-
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter event title"
-              />
-            </div>
-
-            <div>
+            <div className="flex flex-col">
               <Label htmlFor="eventType">Event Type</Label>
-              <Select value={eventType} onValueChange={setEventType}>
-                <SelectTrigger>
+              <Select
+                value={eventType}
+                onValueChange={(value: EventRequest["eventType"]) => setEventType(value)}
+                required
+              >
+                <SelectTrigger className="w-full mt-1">
                   <SelectValue placeholder="Select event type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Webinar">Webinar</SelectItem>
-                  <SelectItem value="Lecture">Lecture</SelectItem>
-                  <SelectItem value="Seminar">Seminar</SelectItem>
+                  <SelectItem value="WEBINAR">Webinar</SelectItem>
+                  <SelectItem value="WORKSHOP">Workshop</SelectItem>
+                  <SelectItem value="SEMINAR">Seminar</SelectItem>
+                  <SelectItem value="LECTURE">Lecture</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="date">Date & Time</Label>
+          {/* Row 2: Date & Time */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventDate">Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-gray-500"
-                    )}
-                  >
+                  <Button variant="outline" className="w-full mt-1 flex justify-start items-center">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    {selectedDate ? format(selectedDate, "PP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -362,38 +519,204 @@ export default function UpcomingEvents() {
                 </PopoverContent>
               </Popover>
             </div>
-
-            <div>
-              <Label htmlFor="prerequisite">Prerequisite</Label>
+            <div className="flex flex-col">
+              <Label htmlFor="eventTime">Time</Label>
               <Input
-                id="prerequisite"
-                value={prerequisite}
-                onChange={(e) => setPrerequisite(e.target.value)}
-                placeholder="Enter prerequisites"
+                id="eventTime"
+                type="time"
+                value={eventTime}
+                onChange={(e) => setEventTime(e.target.value)}
+                className="w-full mt-1"
+                required
               />
             </div>
+          </div>
 
-            <div className="flex justify-end">
-              <Button onClick={handleSubmitCreateEvent}>Create Event</Button>
+          {/* Row 3: Duration & Target Audience */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventDuration">Duration</Label>
+              <Input
+                id="eventDuration"
+                value={eventDuration}
+                onChange={(e) => setEventDuration(e.target.value)}
+                placeholder="e.g., 2 hours"
+                className="w-full mt-1"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="targetAudience">Target Audience</Label>
+              <Input
+                id="targetAudience"
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
 
-      {/* Success Popup */}
-      <Dialog open={isSuccessPopupOpen} onOpenChange={() => setIsSuccessPopupOpen(false)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center space-x-2">
-              <CheckCircle className="h-6 w-6 text-green-500" />
-              <span>Success</span>
-            </DialogTitle>
-            <DialogDescription>
-              Your request has been sent successfully. You will receive an update on your email.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+          {/* Row 4: Description & Agenda */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventDescription">Description</Label>
+              <Input
+                id="eventDescription"
+                value={eventDescription}
+                onChange={(e) => setEventDescription(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="eventAgenda">Agenda</Label>
+              <Input
+                id="eventAgenda"
+                value={eventAgenda}
+                onChange={(e) => setEventAgenda(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Special Requirements */}
+          <div className="flex flex-col">
+            <Label htmlFor="specialRequirements">Special Requirements</Label>
+            <Input
+              id="specialRequirements"
+              value={specialRequirements}
+              onChange={(e) => setSpecialRequirements(e.target.value)}
+              className="w-full mt-1"
+              required
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              onClick={() => onOpenChange(false)}
+              variant="outline"
+              className="border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateEvent}
+              className="bg-blue-600 hover:bg-blue-500"
+            >
+              Create Event
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default function UpcomingEvents() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState(false);
+  // const { toast } = useToast();
+
+  const fetchEvents = async () => {
+    try {
+      const token = Cookies.get('ams_token');
+
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
+      }
+      
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/event/events/alumni/upcoming`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setEvents(response.data);
+      setLoading(false);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+
+      console.error("Failed to fetch events:", error);
+      setError(error.response?.data?.error || error.message || "Failed to load events");
+      setLoading(false);
+
+      // Handle authentication errors
+      if (error.response?.status === 401) {
+        setError("Please log in to view your events");
+        // You might want to redirect to login page here
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const handleRowClick = (event: Event) => {
+    setSelectedEvent(event);
+    setIsDialogOpen(true);
+  };
+
+  if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  if (error) return <div className="flex items-center justify-center h-screen text-red-500">{error}</div>;
+
+  return (
+    <div className="bg-gray-100 w-full">
+      <main className="flex-1 p-8 overflow-auto">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-4 md:mb-0">
+            <h1 className="text-xl md:text-2xl font-bold">Upcoming Events</h1>
+            <p className="text-gray-600">See all the upcoming events click on row to see the details of the event </p>
+            <p className="text-gray-600">Meeting Link will be visible if it assisgned </p>
+          </div>
+          <Button
+            onClick={() => setIsCreateEventDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-500 w-full md:w-auto"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create New Event
+          </Button>
+        </div>
+        <div className="mt-6">
+          <input
+            type="text"
+            placeholder="Search events by name, type, host, or agenda"
+            className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <EventsTable 
+          events={events} 
+          searchQuery={searchQuery}
+          onRowClick={handleRowClick}
+        />
+
+        <EventDetailsDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          selectedEvent={selectedEvent}
+        />
+
+        <CreateEventDialog
+          isOpen={isCreateEventDialogOpen}
+          onOpenChange={setIsCreateEventDialogOpen}
+          onEventCreated={fetchEvents}
+        />
+      </main>
     </div>
   );
 }
