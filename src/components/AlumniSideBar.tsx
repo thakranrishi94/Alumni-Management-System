@@ -4,24 +4,46 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import AlumniUpdateForm from './updateAlumni';
+import axios from "axios";
 
-type MenuItem = {
+interface MenuItem {
   title: string;
   children: { name: string; link: string }[];
-};
+}
 
-type SideBarProps = {
+interface SideBarProps {
   children: React.ReactNode;
   sidebarMenus: MenuItem[];
   title: string;
-};
+}
+
+// Updated AlumniData interface to match the expected structure
+interface AlumniData {
+  id: number;
+  userId: number;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  designation: string;
+  organization: string;
+  skills: string;
+  image: string | null;
+}
 
 const AlumniSideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false);
+  const [alumniData, setAlumniData] = useState<AlumniData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -51,11 +73,34 @@ const AlumniSideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
     setOpenMenu((prev) => (prev === title ? null : title));
   };
 
-  const router=useRouter();
   const handleLogout = () => {
     Cookies.remove("ams_token");
     Cookies.remove("ams_user_role");
     router.push('/login');
+  };
+
+  const handleOpenUpdateForm = async () => {
+    try {
+      setIsLoading(true);
+      const token = Cookies.get('ams_token');
+
+      const response = await axios.get<AlumniData>(
+        `${process.env.NEXT_PUBLIC_API_URL}/alumni/byId`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      setAlumniData(response.data);
+      setIsUpdateFormOpen(true);
+    } catch (error) {
+      console.error('Error fetching alumni data:', error);
+      alert('Failed to load profile data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -141,15 +186,16 @@ const AlumniSideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
 
         {/* Footer Actions */}
         <div className="mt-auto">
-          {/* Profile Update Link */}
+          {/* Profile Update Button */}
           <div className="p-4 border-t border-gray-200">
-            <Link
-              href="/profile-update"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+            <button 
+              onClick={handleOpenUpdateForm}
+              disabled={isLoading}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <span className="mr-2" aria-hidden="true">👤</span>
-              <span>Update Profile</span>
-            </Link>
+              <span>{isLoading ? "Loading..." : "Update Profile"}</span>
+            </button>
           </div>
 
           {/* Logout Button */}
@@ -169,6 +215,15 @@ const AlumniSideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
       <main className="flex-1 p-6 overflow-y-auto">
         {children}
       </main>
+
+      {/* Alumni Update Form */}
+      {alumniData && (
+        <AlumniUpdateForm 
+          alumni={alumniData}
+          open={isUpdateFormOpen}
+          onClose={() => setIsUpdateFormOpen(false)}
+        />
+      )}
 
       {/* Mobile Backdrop */}
       {isMobile && isSidebarOpen && (

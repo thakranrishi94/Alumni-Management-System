@@ -18,6 +18,10 @@ type FormDataType = {
   batch: string;
 };
 
+interface RegistrationError extends Error {
+  message: string;
+}
+
 export default function SignupPage() {
   const { toast } = useToast();
   const [formData, setFormData] = useState<FormDataType>({
@@ -164,8 +168,9 @@ export default function SignupPage() {
         description: "Your registration has been submitted successfully",
         variant: "default",
       });
-    } catch (error: any) {
-      if (error.message.includes("already exists")) {
+    } catch (error: unknown) {
+      const err = error as RegistrationError;
+      if (err.message.includes("already exists")) {
         toast({
           title: "Registration Failed",
           description: "This email or phone number is already registered",
@@ -174,7 +179,7 @@ export default function SignupPage() {
       } else {
         toast({
           title: "Registration Failed",
-          description: error.message || "Please try again later",
+          description: err.message || "Please try again later",
           variant: "destructive",
         });
       }

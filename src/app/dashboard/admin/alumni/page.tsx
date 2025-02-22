@@ -25,6 +25,7 @@ interface AlumniData {
   batch: string;
   course: string;
   organization: string;
+  designation: String;
   image?: string;
   user: AlumniUser;
 }
@@ -38,8 +39,8 @@ interface AlumniCount {
 // Type for nested object paths
 type NestedKeyOf<ObjectType extends object> = {
   [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
-    ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
-    : `${Key}`;
+  ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
+  : `${Key}`;
 }[keyof ObjectType & (string | number)];
 
 export default function AlumniPage() {
@@ -81,7 +82,7 @@ export default function AlumniPage() {
 
     const query = searchQuery.toLowerCase().trim();
     const filtered = alumni.filter((person) => {
-      const includes = (value: string): boolean => 
+      const includes = (value: string): boolean =>
         value.toLowerCase().includes(query);
 
       return (
@@ -134,7 +135,7 @@ export default function AlumniPage() {
   // Get initials from name for avatar
   const getInitials = (name: string): string => {
     if (!name || typeof name !== 'string') return '??';
-    
+
     return name
       .split(" ")
       .map((word) => word[0])
@@ -154,11 +155,11 @@ export default function AlumniPage() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-          {/* Main Content */}
+      {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni</h1>
         <p className="text-gray-600">Manage alumni profiles, track engagement, and organize events</p>
-            
+
         {/* Statistics Cards */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-md py-9">
@@ -257,11 +258,10 @@ export default function AlumniPage() {
                   <td className="p-4">{safeGet(person, 'organization')}</td>
                   <td className="p-4">
                     <span
-                      className={`px-2 py-1 text-sm rounded-full ${
-                        safeGet(person, 'user.status') === "ACTIVE"
+                      className={`px-2 py-1 text-sm rounded-full ${safeGet(person, 'user.status') === "ACTIVE"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {safeGet(person, 'user.status', 'Unknown')}
                     </span>
@@ -339,15 +339,33 @@ export default function AlumniPage() {
                       <p className="text-sm text-gray-600">Status</p>
                       <p className="font-medium">
                         <span
-                          className={`px-2 py-1 text-sm rounded-full ${
-                            safeGet(selectedAlumni, 'user.status') === "ACTIVE"
+                          className={`px-2 py-1 text-sm rounded-full ${safeGet(selectedAlumni, 'user.status') === "ACTIVE"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
-                          }`}
+                            }`}
                         >
                           {safeGet(selectedAlumni, 'user.status', 'Unknown')}
                         </span>
                       </p>
+                    </div>
+
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Mail className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Organization</p>
+                      <p className="font-medium">{selectedAlumni.organization}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Mail className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Designation</p>
+                      <p className="font-medium">{selectedAlumni.designation}</p>
                     </div>
                   </div>
                 </div>

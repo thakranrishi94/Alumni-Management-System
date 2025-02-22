@@ -15,6 +15,8 @@ interface AlumniData {
   id: number;
   requestStatus: "PENDING" | "APPROVED" | "REJECTED";
   profilePhoto: string | null;
+  designation: String;
+  organization: String;
   user: { email: string; name: string; phone: number };
 }
 
@@ -63,7 +65,7 @@ export default function AlumniRequest() {
         person.requestStatus.toLowerCase()
       ];
 
-      return searchableFields.some(field => 
+      return searchableFields.some(field =>
         field.toLowerCase().includes(query)
       );
     });
@@ -94,7 +96,7 @@ export default function AlumniRequest() {
 
   const getInitials = (name: string | undefined): string => {
     if (!name) return "??";
-    
+
     return name
       .split(" ")
       .map((word) => word[0] || "")
@@ -113,11 +115,11 @@ export default function AlumniRequest() {
         console.error('User ID is missing');
         return;
       }
-  
+
       await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/alumni/${selectedAlumni.id}`, {
         requestStatus: requestStatus,
       });
-  
+
       setIsDialogOpen(false);
       getAllumniDetails();
     } catch (error) {
@@ -134,7 +136,7 @@ export default function AlumniRequest() {
       <main className="flex-1 p-8 overflow-auto">
         <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni Requests</h1>
         <p className="text-gray-600">Manage alumni requests, approve or reject applications</p>
-        
+
         {/* Statistics Cards */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-md">
@@ -229,13 +231,12 @@ export default function AlumniRequest() {
                   <td className="p-4">{person.user.phone}</td>
                   <td className="p-4">
                     <span
-                      className={`px-2 py-1 text-sm rounded-full ${
-                        person.requestStatus === "PENDING"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : person.requestStatus === "APPROVED"
+                      className={`px-2 py-1 text-sm rounded-full ${person.requestStatus === "PENDING"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : person.requestStatus === "APPROVED"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {person.requestStatus}
                     </span>
@@ -310,17 +311,34 @@ export default function AlumniRequest() {
                       <p className="text-sm text-gray-600">Status</p>
                       <p className="font-medium">
                         <span
-                          className={`px-2 py-1 text-sm rounded-full ${
-                            selectedAlumni.requestStatus === "PENDING"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : selectedAlumni.requestStatus === "APPROVED"
+                          className={`px-2 py-1 text-sm rounded-full ${selectedAlumni.requestStatus === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : selectedAlumni.requestStatus === "APPROVED"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
-                          }`}
+                            }`}
                         >
                           {selectedAlumni.requestStatus}
                         </span>
                       </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Mail className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Organization</p>
+                      <p className="font-medium">{selectedAlumni.organization}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Mail className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Designation</p>
+                      <p className="font-medium">{selectedAlumni.designation}</p>
                     </div>
                   </div>
                 </div>
@@ -331,16 +349,24 @@ export default function AlumniRequest() {
                 {/* Buttons for Approve/Reject */}
                 <div className="flex space-x-4 mt-4">
                   <button
-                    className="w-full p-3 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
+                    className={`w-full p-3 rounded-lg ${selectedAlumni.requestStatus === 'APPROVED'
+                        ? 'bg-green-300 cursor-not-allowed'
+                        : 'bg-green-500 hover:bg-green-600'
+                      } text-white transition-colors duration-200`}
                     title="Approve"
                     onClick={() => handleStatusChange('APPROVED')}
+                    disabled={selectedAlumni.requestStatus === 'APPROVED'}
                   >
                     Approve
                   </button>
                   <button
-                    className="w-full p-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                    className={`w-full p-3 rounded-lg ${selectedAlumni.requestStatus === 'REJECTED'
+                        ? 'bg-red-300 cursor-not-allowed'
+                        : 'bg-red-500 hover:bg-red-600'
+                      } text-white transition-colors duration-200`}
                     title="Reject"
                     onClick={() => handleStatusChange('REJECTED')}
+                    disabled={selectedAlumni.requestStatus === 'REJECTED'}
                   >
                     Reject
                   </button>

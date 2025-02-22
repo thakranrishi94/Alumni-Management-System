@@ -112,14 +112,14 @@ const getHostName = (event: Event): string => {
 };
 
 // Component for the Events Table
-const EventsTable = ({ 
-  events, 
+const EventsTable = ({
+  events,
   searchQuery,
-  onRowClick 
-}: { 
-  events: Event[], 
+  onRowClick
+}: {
+  events: Event[],
   searchQuery: string,
-  onRowClick: (event: Event) => void 
+  onRowClick: (event: Event) => void
 }) => {
   const filteredEvents = events.filter(event =>
     event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -192,9 +192,9 @@ const EventsTable = ({
                 <td className="p-3 text-gray-700">{event.faculty?.user.name || 'Not assigned'}</td>
                 <td className="p-3 text-gray-700">
                   <span className={`px-2 py-1 text-sm rounded-full ${event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
-                      event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
-                        event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
-                          "bg-yellow-100 text-yellow-800"
+                    event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
+                      event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
+                        "bg-yellow-100 text-yellow-800"
                     }`}>
                     {event.eventType}
                   </span>
@@ -211,14 +211,14 @@ const EventsTable = ({
 };
 
 // Component for the Event Details Dialog
-const EventDetailsDialog = ({ 
-  isOpen, 
-  onOpenChange, 
-  selectedEvent 
-}: { 
-  isOpen: boolean, 
-  onOpenChange: (open: boolean) => void, 
-  selectedEvent: Event | null 
+const EventDetailsDialog = ({
+  isOpen,
+  onOpenChange,
+  selectedEvent
+}: {
+  isOpen: boolean,
+  onOpenChange: (open: boolean) => void,
+  selectedEvent: Event | null
 }) => {
   if (!selectedEvent) return null;
 
@@ -325,14 +325,14 @@ const EventDetailsDialog = ({
 };
 
 // Component for the Create Event Dialog
-const CreateEventDialog = ({ 
-  isOpen, 
-  onOpenChange, 
-  onEventCreated 
-}: { 
-  isOpen: boolean, 
-  onOpenChange: (open: boolean) => void, 
-  onEventCreated: () => void 
+const CreateEventDialog = ({
+  isOpen,
+  onOpenChange,
+  onEventCreated
+}: {
+  isOpen: boolean,
+  onOpenChange: (open: boolean) => void,
+  onEventCreated: () => void
 }) => {
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -405,7 +405,7 @@ const CreateEventDialog = ({
 
       const eventDate = new Date(selectedDate);
       eventDate.setUTCHours(0, 0, 0, 0);
-  
+
       const eventData = {
         alumniId: null,
         facultyId: null,
@@ -420,7 +420,7 @@ const CreateEventDialog = ({
         specialRequirements,
         requestStatus: "PENDING" as const,
       };
-      
+
       const token = Cookies.get('ams_token');
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event`, eventData, {
         headers: {
@@ -444,7 +444,7 @@ const CreateEventDialog = ({
       setTargetAudience("");
       setEventAgenda("");
       setSpecialRequirements("");
-      
+
       // Notify parent component to refresh events
       onEventCreated();
     } catch (error) {
@@ -502,22 +502,15 @@ const CreateEventDialog = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col">
               <Label htmlFor="eventDate">Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full mt-1 flex justify-start items-center">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                id="eventDate"
+                type="date"
+                value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                className="w-full mt-1"
+                min={format(new Date(), 'yyyy-MM-dd')}
+                required
+              />
             </div>
             <div className="flex flex-col">
               <Label htmlFor="eventTime">Time</Label>
@@ -634,7 +627,7 @@ export default function UpcomingEvents() {
         setLoading(false);
         return;
       }
-      
+
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/event/events/alumni/upcoming`,
         {
@@ -699,8 +692,8 @@ export default function UpcomingEvents() {
           />
         </div>
 
-        <EventsTable 
-          events={events} 
+        <EventsTable
+          events={events}
           searchQuery={searchQuery}
           onRowClick={handleRowClick}
         />
