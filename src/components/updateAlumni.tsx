@@ -140,7 +140,18 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
       formDataObj.append("skills", formData.skills);
       
       if (imageFile) {
-        formDataObj.append("image", imageFile);
+        // formDataObj.append("image", imageFile);
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/alumni/update/${alumni.id}/image`,{image:imageFile},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        console.log(response.data);
+        formDataObj.append("image", response.data.imageUrl);
       }
       
       const response = await axios.put(

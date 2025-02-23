@@ -12,6 +12,21 @@ import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo, Link2 } from 
 import Cookies from "js-cookie";
 import Link from "next/link";
 
+//interface for certificate
+interface CertificateResponse {
+  message: string;
+  certificate: {
+    id: number;
+    eventId: number;
+    userId: number;
+    certificateUrl: string;
+    issuedAt: string;
+    issuerId: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 // Update interface to make relationships optional
 interface Event {
   eventRequestId: number;
@@ -23,18 +38,26 @@ interface Event {
   eventDuration: string;
   eventLink: string | null;
   eventAgenda: string;
-  alumni?: {
+  alumniId: number;
+  facultyId: number;
+  adminId: number | null;
+  requestStatus: string;
+  specialRequirements: string;
+  targetAudience: string;
+  createdAt: string;
+  updatedAt: string;
+  alumni: {
     user: {
       name: string;
     };
-  } | null;
-  faculty?: {
+  };
+  faculty: {
     user: {
       name: string;
     };
-  } | null;
-  adminId?: number;
+  };
 }
+
 //error interface
 interface ApiError {
   response?: {
@@ -129,6 +152,42 @@ export default function PastEvents() {
     setIsDialogOpen(true);
   };
 
+  //issueCertificate
+  const handleIssueCertificate = async (eventId: number, alumniId: number) => {
+    try {
+      const token = Cookies.get('ams_token');
+      const response = await axios.post<CertificateResponse>(
+        `${process.env.NEXT_PUBLIC_API_URL}/certificate/issue`,
+        {
+          eventId,
+          userId: alumniId  // We'll use alumniId as the userId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      // Show success message
+      alert('Certificate issued successfully!');
+
+      // Optionally, you can open the certificate in a new tab
+      if (response.data.certificate?.certificateUrl) {
+        window.open(response.data.certificate.certificateUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Failed to issue certificate:', error);
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || 'Failed to issue certificate');
+      } else {
+        alert('An unexpected error occurred');
+      }
+    }
+  };
+
+
+
   // Updated search to handle optional fields
   const filteredEvents = events && events.filter(event =>
     event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -219,9 +278,9 @@ export default function PastEvents() {
                     <td className="p-3 text-gray-700">{event.faculty?.user.name || 'Not assigned'}</td>
                     <td className="p-3 text-gray-700">
                       <span className={`px-2 py-1 text-sm rounded-full ${event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
-                          event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
-                            event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
-                              "bg-yellow-100 text-yellow-800"
+                        event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
+                          event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
+                            "bg-yellow-100 text-yellow-800"
                         }`}>
                         {event.eventType}
                       </span>
@@ -296,58 +355,71 @@ export default function PastEvents() {
                       <p className="font-medium">{selectedEvent.eventDuration}</p>
                     </div>
                   </div>
-                
 
-                <div className=" flex space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="p-3 bg-indigo-100 rounded-full">
-                      <ListTodo className="h-5 w-5 text-indigo-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Agenda</p>
-                      <p className="font-medium">{selectedEvent.eventAgenda}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="p-3 bg-purple-100 rounded-full">
-                      <FileText className="h-5 w-5 text-purple-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Description</p>
-                      <p className="font-medium">{selectedEvent.eventDescription}</p>
+
+                  <div className=" flex space-y-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 bg-indigo-100 rounded-full">
+                        <ListTodo className="h-5 w-5 text-indigo-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Agenda</p>
+                        <p className="font-medium">{selectedEvent.eventAgenda}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="p-3 bg-purple-100 rounded-full">
-                      <Link2 className="h-5 w-5 text-purple-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Event Link:</p>
-                      {selectedEvent.eventLink ? (
-                        <Link
-                          href={selectedEvent.eventLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-blue-600 hover:cursor-pointer"
-                        >
-                          {selectedEvent.eventLink}
-                        </Link>
-                      ) : (
-                        <span className="text-gray-500">No assigned</span>
-                      )}
+
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 bg-purple-100 rounded-full">
+                        <FileText className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Description</p>
+                        <p className="font-medium">{selectedEvent.eventDescription}</p>
+                      </div>
                     </div>
                   </div>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 bg-purple-100 rounded-full">
+                        <Link2 className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Event Link:</p>
+                        {selectedEvent.eventLink ? (
+                          <Link
+                            href={selectedEvent.eventLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-blue-600 hover:cursor-pointer"
+                          >
+                            {selectedEvent.eventLink}
+                          </Link>
+                        ) : (
+                          <span className="text-gray-500">No assigned</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      className="bg-blue-700 p-2 rounded-sm text-xs text-white font-bold"
+                      onClick={() => {
+                        if (selectedEvent && selectedEvent.alumniId) {
+                          handleIssueCertificate(selectedEvent.eventRequestId, selectedEvent.alumniId);
+                        } else {
+                          alert('Cannot issue certificate: Missing event or alumni information');
+                        }
+                      }}
+                      // Only show button for completed events
+                      disabled={selectedEvent?.requestStatus !== 'COMPLETED'}
+                    >
+                      Issue Certificate
+                    </button>
+                    <button className="bg-blue-700 p-2 ml-4 px-5 rounded-sm text-xs text-white font-bold">Create Post</button>
+                  </div>
                 </div>
-                <div className="mt-4">
-                  <button className="bg-blue-700 p-2 rounded-sm text-xs text-white font-bold">Issue Certificate</button>
-                  <button className="bg-blue-700 p-2 ml-4 px-5 rounded-sm text-xs text-white font-bold">Create Post</button>
-                  </div>        
-              </div>
               </div>
             )}
           </DialogContent>

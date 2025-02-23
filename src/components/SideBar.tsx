@@ -25,8 +25,9 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsSidebarOpen(window.innerWidth >= 768);
+      const mobileView = window.innerWidth < 768;
+      setIsMobile(mobileView);
+      setIsSidebarOpen(!mobileView); 
     };
 
     checkMobile();
@@ -51,20 +52,20 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
     setOpenMenu((prev) => (prev === title ? null : title));
   };
 
-  const router=useRouter();
+  const router = useRouter();
   const handleLogout = () => {
     Cookies.remove("ams_token");
     Cookies.remove("ams_user_role");
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
-    <section className="flex min-h-screen bg-gray-50">
+    <section className="relative flex h-screen overflow-hidden bg-gray-50">
       {/* Mobile Menu Button */}
       {isMobile && (
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg md:hidden"
+          className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md md:hidden"
           aria-label="Toggle menu"
         >
           <span className="sr-only">Toggle menu</span>
@@ -75,11 +76,14 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed md:static w-64 h-screen bg-white shadow-md
+          ${isMobile ? "fixed" : "sticky top-0"}
+          w-64 h-screen bg-white shadow-md
+          z-40 flex flex-col
           transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
-          md:translate-x-0 z-40 flex flex-col
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
         `}
+        aria-label="Sidebar"
       >
         {/* Header */}
         <div className="p-6">
@@ -111,13 +115,19 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
                 }}
                 className={`
                   w-full px-6 py-3 text-left flex justify-between items-center
-                  ${activeMenu === menu.title ? "bg-gray-200 font-semibold" : "hover:bg-gray-100"}
+                  ${
+                    activeMenu === menu.title
+                      ? "bg-gray-200 font-semibold"
+                      : "hover:bg-gray-100"
+                  }
                 `}
                 aria-expanded={openMenu === menu.title}
               >
                 <span>{menu.title}</span>
                 {menu.children.length > 0 && (
-                  <span aria-hidden="true">{openMenu === menu.title ? "▼" : "►"}</span>
+                  <span aria-hidden="true">
+                    {openMenu === menu.title ? "▼" : "►"}
+                  </span>
                 )}
               </button>
               {openMenu === menu.title && menu.children.length > 0 && (
@@ -127,7 +137,9 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
                       key={child.name}
                       href={child.link}
                       className={`block px-4 py-2 text-sm ${
-                        pathname === child.link ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"
+                        pathname === child.link
+                          ? "bg-blue-100 font-semibold"
+                          : "hover:bg-gray-100"
                       }`}
                     >
                       {child.name}
@@ -147,7 +159,9 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
               href="/profile-update"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <span className="mr-2" aria-hidden="true">👤</span>
+              <span className="mr-2" aria-hidden="true">
+                👤
+              </span>
               <span>Update Profile</span>
             </Link>
           </div>
@@ -158,15 +172,17 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
               onClick={handleLogout}
               className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
             >
-              <span className="mr-2" aria-hidden="true">🚪</span>
+              <span className="mr-2" aria-hidden="true">
+                🚪
+              </span>
               <span>Logout</span>
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto">
+      {/* Main Content (scrollable) */}
+      <main className="flex-1 overflow-y-auto p-6">
         {children}
       </main>
 
