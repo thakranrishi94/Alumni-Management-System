@@ -14,9 +14,9 @@ interface AlumniData {
   batch: number;
   id: number;
   requestStatus: "PENDING" | "APPROVED" | "REJECTED";
-  profilePhoto: string | null;
-  designation: String;
-  organization: String;
+  image?: string;
+  designation: string;
+  organization: string;
   user: { email: string; name: string; phone: number };
 }
 
@@ -116,7 +116,7 @@ export default function AlumniRequest() {
         return;
       }
 
-      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/alumni/${selectedAlumni.id}`, {
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/alumni/update-status/${selectedAlumni.id}`, {
         requestStatus: requestStatus,
       });
 
@@ -211,9 +211,9 @@ export default function AlumniRequest() {
                   onClick={() => handleRowClick(person)}
                 >
                   <td className="p-4">
-                    {person.profilePhoto ? (
+                    {person.image ? (
                       <Image
-                        src={person.profilePhoto}
+                        src={person.image}
                         alt={person.user.name}
                         width={40}
                         height={40}
@@ -257,9 +257,9 @@ export default function AlumniRequest() {
             {selectedAlumni && (
               <div className="space-y-6">
                 <div className="flex items-center space-x-6">
-                  {selectedAlumni.profilePhoto ? (
+                  {selectedAlumni.image ? (
                     <Image
-                      src={selectedAlumni.profilePhoto}
+                      src={selectedAlumni.image}
                       alt={selectedAlumni.user.name}
                       width={80}
                       height={80}

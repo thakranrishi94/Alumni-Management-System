@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { Mail, Phone, Briefcase, Award, FileText } from "lucide-react";
 import Cookies from "js-cookie";
+import { useToast } from "@/hooks/use-toast";
 
 type AlumniUpdateFormProps = {
   alumni: {
@@ -31,6 +32,7 @@ type AlumniUpdateFormProps = {
 };
 
 export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdateFormProps) {
+    const { toast } = useToast();
   const [formData, setFormData] = useState({
     password: "",
     organization: alumni?.organization ?? "",
@@ -166,12 +168,20 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
       );
       
       if (response.status === 200) {
-        alert("Profile updated successfully");
+        toast({
+          title: "Success",
+          description: "Profile Updated Successfully",
+          variant: "default",
+        });
         onClose();
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || "Failed to update profile");
-      console.error(error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      // console.error(error);
     } finally {
       setIsSubmitting(false);
     }

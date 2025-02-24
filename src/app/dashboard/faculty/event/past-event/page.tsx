@@ -11,7 +11,7 @@ import {
 import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo, Link2 } from "lucide-react";
 import Cookies from "js-cookie";
 import Link from "next/link";
-
+import { useToast } from "@/hooks/use-toast";
 //interface for certificate
 interface CertificateResponse {
   message: string;
@@ -99,6 +99,7 @@ const getHostName = (event: Event): string => {
 };
 
 export default function PastEvents() {
+  const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -132,7 +133,7 @@ export default function PastEvents() {
       } catch (err: unknown) {
         const error = err as ApiError;
 
-        console.error("Failed to fetch events:", error);
+        // console.error("Failed to fetch events:", error);
         setError(error.response?.data?.error || error.message || "Failed to load events");
         setLoading(false);
 
@@ -160,7 +161,7 @@ export default function PastEvents() {
         `${process.env.NEXT_PUBLIC_API_URL}/certificate/issue`,
         {
           eventId,
-          userId: alumniId  // We'll use alumniId as the userId
+          alumniId: alumniId  // We'll use alumniId as the userId
         },
         {
           headers: {
@@ -170,18 +171,30 @@ export default function PastEvents() {
       );
 
       // Show success message
-      alert('Certificate issued successfully!');
+      toast({
+        title: "Success",
+        description: "Certificate issued successfully!",
+        variant: "default",
+      });
 
       // Optionally, you can open the certificate in a new tab
-      if (response.data.certificate?.certificateUrl) {
-        window.open(response.data.certificate.certificateUrl, '_blank');
-      }
+      // if (response.data.certificate?.certificateUrl) {
+      //   window.open(response.data.certificate.certificateUrl, '_blank');
+      // }
     } catch (error) {
-      console.error('Failed to issue certificate:', error);
+      // console.error('Failed to issue certificate:', error);
       if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || 'Failed to issue certificate');
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || 'Failed to issue certificate',
+          variant: "destructive",
+        });
       } else {
-        alert('An unexpected error occurred');
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -409,11 +422,13 @@ export default function PastEvents() {
                         if (selectedEvent && selectedEvent.alumniId) {
                           handleIssueCertificate(selectedEvent.eventRequestId, selectedEvent.alumniId);
                         } else {
-                          alert('Cannot issue certificate: Missing event or alumni information');
+                          toast({
+                            title: "Error",
+                            description: "Cannot issue a certificate for Admin",
+                            variant: "destructive",
+                          });
                         }
                       }}
-                      // Only show button for completed events
-                      disabled={selectedEvent?.requestStatus !== 'COMPLETED'}
                     >
                       Issue Certificate
                     </button>

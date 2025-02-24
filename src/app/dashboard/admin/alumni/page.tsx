@@ -25,7 +25,7 @@ interface AlumniData {
   batch: string;
   course: string;
   organization: string;
-  designation: String;
+  designation: string;
   image?: string;
   user: AlumniUser;
 }

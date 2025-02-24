@@ -67,7 +67,10 @@ export default function Header() {
     const handleMobileNavClick = () => {
         setIsMobileMenuOpen(false);
     };
-
+    // if(!pathname.startsWith('/dashboard'))
+    if(!pathname.startsWith('/dashboard')){ 
+        
+   
     return (
         <div className={`fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300 ${
             isScrolled ? 'shadow-md' : ''
@@ -199,4 +202,5 @@ export default function Header() {
             </header>
         </div>
     );
+}
 }

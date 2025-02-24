@@ -51,7 +51,7 @@ export default function AlumniAboutPage() {
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-blue-800 mb-6 text-center">About Our Alumni Network</h2>
             <p className="text-gray-700 mb-8 text-lg leading-relaxed">
-              Founded in 2012, the KR Mangalam University Alumni Network serves as a bridge connecting over 15,000 graduates across the globe. Our alumni represent the university's legacy of excellence and innovation in various fields including Engineering, Management, Law, Fashion Design, Journalism, and more.
+              Founded in 2012, the KR Mangalam University Alumni Network serves as a bridge connecting over 15,000 graduates across the globe. Our alumni represent the university&apos;s legacy of excellence and innovation in various fields including Engineering, Management, Law, Fashion Design, Journalism, and more.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
               <div className="bg-blue-50 p-6 rounded-lg shadow-md">
@@ -63,7 +63,7 @@ export default function AlumniAboutPage() {
               <div className="bg-blue-50 p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-semibold text-blue-800 mb-3">Our Vision</h3>
                 <p className="text-gray-700">
-                  To build a vibrant, global community of alumni who serve as ambassadors of KR Mangalam University's values and contribute to its continued growth while advancing in their respective fields.
+                  To build a vibrant, global community of alumni who serve as ambassadors of KR Mangalam University&apos;s values and contribute to its continued growth while advancing in their respective fields.
                 </p>
               </div>
             </div>
@@ -103,21 +103,21 @@ export default function AlumniAboutPage() {
                 name: 'Priya Sharma',
                 batch: 'BTech 2015',
                 role: 'Senior Software Engineer, Google',
-                quote: 'The foundation I received at KR Mangalam University equipped me with both technical skills and adaptability that have been crucial to my success in the tech industry.',
+                quote: '"The foundation I received at KR Mangalam University equipped me with both technical skills and adaptability that have been crucial to my success in the tech industry."',
                 image: '/gallery/gallery.jpg'
               },
               {
                 name: 'Rajiv Mehta',
                 batch: 'MBA 2017',
                 role: 'Founder & CEO, GreenTech Solutions',
-                quote: 'The entrepreneurship cell and mentorship programs at KRMU gave me the confidence to launch my own venture. Today, we employ over 200 people and serve clients across Asia.',
+                quote: '"The entrepreneurship cell and mentorship programs at KRMU gave me the confidence to launch my own venture. Today, we employ over 200 people and serve clients across Asia."',
                 image: '/api/placeholder/150/150'
               },
               {
                 name: 'Ananya Kapoor',
                 batch: 'LLB 2018',
                 role: 'Legal Advisor, United Nations',
-                quote: 'The international exposure and moot court competitions I participated in during my time at KRMU prepared me for the complex challenges I tackle in international law today.',
+                quote: '"The international exposure and moot court competitions I participated in during my time at KRMU prepared me for the complex challenges I tackle in international law today."',
                 image: '/api/placeholder/150/150'
               }
             ].map((testimonial, index) => (
@@ -138,7 +138,7 @@ export default function AlumniAboutPage() {
                     <p className="text-blue-600 text-sm">{testimonial.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-700 italic">"{testimonial.quote}"</p>
+                <p className="text-gray-700 italic">{testimonial.quote}</p>
               </div>
             ))}
           </div>
