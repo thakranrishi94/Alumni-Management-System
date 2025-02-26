@@ -85,7 +85,7 @@ export default function PastEvents() {
     const fetchEvents = async () => {
       try {
         const token = Cookies.get('ams_token');
-    
+
         if (!token) {
           setError("Authentication required");
           setLoading(false);
@@ -100,16 +100,16 @@ export default function PastEvents() {
             },
           }
         );
-    
+
         setEvents(response.data);
         setLoading(false);
       } catch (err: unknown) {
         const error = err as ApiError;
-    
+
         console.error("Failed to fetch events:", error);
         setError(error.response?.data?.error || error.message || "Failed to load events");
         setLoading(false);
-    
+
         // Handle authentication errors
         if (error.response?.status === 401) {
           setError("Please log in to view your events");
@@ -207,21 +207,19 @@ export default function PastEvents() {
                   <tr
                     key={event.eventRequestId}
                     onClick={() => handleRowClick(event)}
-                    className={`${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition-colors cursor-pointer`}
+                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition-colors cursor-pointer`}
                   >
                     <td className="p-3 text-gray-700">{event.eventTitle}</td>
                     <td className="p-3 text-gray-700">{event.eventAgenda}</td>
                     <td className="p-3 text-gray-700">{getHostName(event)}</td>
                     <td className="p-3 text-gray-700">{event.faculty?.user.name || 'Not assigned'}</td>
                     <td className="p-3 text-gray-700">
-                      <span className={`px-2 py-1 text-sm rounded-full ${
-                        event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
-                        event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
-                        event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
-                        "bg-yellow-100 text-yellow-800"
-                      }`}>
+                      <span className={`px-2 py-1 text-sm rounded-full ${event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
+                          event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
+                            event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
+                              "bg-yellow-100 text-yellow-800"
+                        }`}>
                         {event.eventType}
                       </span>
                     </td>
@@ -244,10 +242,21 @@ export default function PastEvents() {
               <div className="space-y-6">
                 <div className="flex items-center space-x-6">
                   <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                    {selectedEvent.eventTitle.split(" ")
-                      .map((word) => word[0])
-                      .join("")
-                      .toUpperCase()}
+                    {(() => {
+                      const words = selectedEvent.eventTitle
+                        .replace(/[&.]/g, ' ')
+                        .split(" ")
+                        .filter(word => word.length > 0);
+
+                      if (words.length > 3) {
+                        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                      }
+
+                      return words
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase();
+                    })()}
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>
@@ -323,8 +332,8 @@ export default function PastEvents() {
                 {selectedEvent.eventLink && (
                   <div className="mt-4">
                     <p className="text-sm text-gray-600">Event Link:</p>
-                    <a href={selectedEvent.eventLink} target="_blank" rel="noopener noreferrer" 
-                       className="text-blue-500 hover:text-blue-600">
+                    <a href={selectedEvent.eventLink} target="_blank" rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-600">
                       {selectedEvent.eventLink}
                     </a>
                   </div>

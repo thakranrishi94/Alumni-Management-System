@@ -30,9 +30,9 @@ interface Certificate {
   issuedAt: string;
 }
 
-// Define interface for API error responses
+// Define API error response structure
 interface ApiErrorResponse {
-  message?: string;
+  message: string;
   success: boolean;
 }
 
@@ -83,21 +83,21 @@ export default function FacultyCertificates() {
         setLoading(false);
         return;
       }
-
+  
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       if (!apiUrl) {
         throw new Error("API URL is not defined in environment variables");
       }
-
-      const response = await axios.get(`${apiUrl}/certificate/byFaculty`, {
+  
+      const response = await axios.get(`${apiUrl}/certificate/byAlumni`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       console.log("API Response:", response.data); // Debug log
-
+  
       if (response.data.success) {
         setCertificates(response.data.data);
         setFilteredCertificates(response.data.data);
@@ -107,7 +107,9 @@ export default function FacultyCertificates() {
     } catch (err: unknown) {
       console.error("Error fetching certificates:", err);
       const axiosError = err as AxiosError<ApiErrorResponse>;
-      setError(axiosError.response?.data?.message || "Failed to fetch certificates");
+      setError(
+        axiosError.response?.data?.message || "Failed to fetch certificates"
+      );
     } finally {
       setLoading(false);
     }
@@ -212,10 +214,11 @@ export default function FacultyCertificates() {
                 <button
                   key={i}
                   onClick={() => paginate(i + 1)}
-                  className={`px-4 py-2 border rounded-lg ${currentPage === i + 1
+                  className={`px-4 py-2 border rounded-lg ${
+                    currentPage === i + 1
                       ? "bg-blue-500 text-white"
                       : "text-gray-500"
-                    }`}
+                  }`}
                 >
                   {i + 1}
                 </button>
@@ -234,23 +237,23 @@ export default function FacultyCertificates() {
           {selectedCertificate && (
             <div className="space-y-6">
               <div className="flex items-center space-x-6">
-                <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                  {(() => {
-                    const words = selectedCertificate.eventName
-                      .replace(/[&.]/g, ' ')
-                      .split(" ")
-                      .filter(word => word.length > 0);
+              <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                    {(() => {
+                      const words = selectedCertificate.eventName
+                        .replace(/[&.]/g, ' ')
+                        .split(" ")
+                        .filter(word => word.length > 0);
 
-                    if (words.length > 3) {
-                      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-                    }
+                      if (words.length > 3) {
+                        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                      }
 
-                    return words
-                      .map(word => word[0])
-                      .join('')
-                      .toUpperCase();
-                  })()}
-                </div>
+                      return words
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase();
+                    })()}
+                  </div>
                 <div>
                   <h2 className="text-2xl font-bold">{selectedCertificate.eventName}</h2>
                   <p className="text-gray-600">{selectedCertificate.eventType}</p>
@@ -306,11 +309,11 @@ export default function FacultyCertificates() {
                     <p className="font-medium">{selectedCertificate.alumniEmail}</p>
                   </div>
                 </div>
-
+                
                 <div className="col-span-2 flex justify-end">
-                  <a
-                    href={selectedCertificate.certificateUrl}
-                    target="_blank"
+                  <a 
+                    href={selectedCertificate.certificateUrl} 
+                    target="_blank" 
                     rel="noopener noreferrer"
                   >
                     <Button>

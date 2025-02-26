@@ -82,20 +82,20 @@ export default function UpcomingEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [eventLink,setEventLink]=useState("")
+  const [eventLink, setEventLink] = useState("")
   const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const token = Cookies.get('ams_token');
-    
+
         if (!token) {
           setError("Authentication required");
           setLoading(false);
           return;
         }
-    
+
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/event/events/upcoming`,
           {
@@ -104,16 +104,16 @@ export default function UpcomingEvents() {
             },
           }
         );
-    
+
         setEvents(response.data);
         setLoading(false);
       } catch (err: unknown) {
         const error = err as ApiError;
-    
+
         console.error("Failed to fetch events:", error);
         setError(error.response?.data?.error || error.message || "Failed to load events");
         setLoading(false);
-    
+
         // Handle authentication errors
         if (error.response?.status === 401) {
           setError("Please log in to view your events");
@@ -154,7 +154,7 @@ export default function UpcomingEvents() {
       }
 
       const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/event/${selectedEvent.eventRequestId}/link`;
-      
+
       const response = await axios.put(
         endpoint,
         { eventLink },
@@ -179,9 +179,9 @@ export default function UpcomingEvents() {
           },
         }
       );
-      
+
       setEvents(updatedEvents.data);
-      
+
       // Update the selected event with the new link
       setSelectedEvent(prev => prev ? { ...prev, eventLink } : null);
 
@@ -191,7 +191,7 @@ export default function UpcomingEvents() {
       });
     } catch (err) {
       console.error("Failed to update event link:", err);
-      
+
       if (axios.isAxiosError(err)) {
         console.error('Axios Error:', {
           status: err.response?.status,
@@ -291,21 +291,19 @@ export default function UpcomingEvents() {
                   <tr
                     key={event.eventRequestId}
                     onClick={() => handleRowClick(event)}
-                    className={`${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition-colors cursor-pointer`}
+                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition-colors cursor-pointer`}
                   >
                     <td className="p-3 text-gray-700">{event.eventTitle}</td>
                     <td className="p-3 text-gray-700">{event.eventAgenda}</td>
                     <td className="p-3 text-gray-700">{getHostName(event)}</td>
                     <td className="p-3 text-gray-700">{event.faculty?.user.name || 'Not assigned'}</td>
                     <td className="p-3 text-gray-700">
-                      <span className={`px-2 py-1 text-sm rounded-full ${
-                        event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
-                        event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
-                        event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
-                        "bg-yellow-100 text-yellow-800"
-                      }`}>
+                      <span className={`px-2 py-1 text-sm rounded-full ${event.eventType === "WEBINAR" ? "bg-blue-100 text-blue-800" :
+                          event.eventType === "WORKSHOP" ? "bg-green-100 text-green-800" :
+                            event.eventType === "SEMINAR" ? "bg-purple-100 text-purple-800" :
+                              "bg-yellow-100 text-yellow-800"
+                        }`}>
                         {event.eventType}
                       </span>
                     </td>
@@ -319,119 +317,127 @@ export default function UpcomingEvents() {
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-  <DialogContent className="sm:max-w-2xl">
-    <DialogHeader>
-      <DialogTitle className="text-2xl font-bold">Event Details</DialogTitle>
-      <DialogDescription>View and update event information</DialogDescription>
-    </DialogHeader>
-    {selectedEvent && (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-6">
-          <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-            {selectedEvent.eventTitle
-              .split(" ")
-              .map((word) => word[0])
-              .join("")
-              .toUpperCase()}
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>
-            <p className="text-gray-600">{selectedEvent.eventType}</p>
-          </div>
-        </div>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Event Details</DialogTitle>
+              <DialogDescription>View and update event information</DialogDescription>
+            </DialogHeader>
+            {selectedEvent && (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-6">
+                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                    {(() => {
+                      const words = selectedEvent.eventTitle
+                        .replace(/[&.]/g, ' ')
+                        .split(" ")
+                        .filter(word => word.length > 0);
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <User className="h-5 w-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Host</p>
-              <p className="font-medium">{getHostName(selectedEvent)}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-green-100 rounded-full">
-              <BookOpen className="h-5 w-5 text-green-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Faculty</p>
-              <p className="font-medium">{selectedEvent.faculty?.user.name || "Not assigned"}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <Calendar className="h-5 w-5 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Date & Time</p>
-              <p className="font-medium">
-                {formatDate(selectedEvent.eventDate)} {formatTime(selectedEvent.eventTime)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Clock className="h-5 w-5 text-yellow-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Duration</p>
-              <p className="font-medium">{selectedEvent.eventDuration}</p>
-            </div>
-          </div>
-        </div>
+                      if (words.length > 3) {
+                        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                      }
 
-        <div className="space-y-4">
-          <div className="flex items-start space-x-4">
-            <div className="p-3 bg-indigo-100 rounded-full">
-              <ListTodo className="h-5 w-5 text-indigo-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Agenda</p>
-              <p className="font-medium">{selectedEvent.eventAgenda}</p>
-            </div>
-          </div>
-        </div>
+                      return words
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase();
+                    })()}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>
+                    <p className="text-gray-600">{selectedEvent.eventType}</p>
+                  </div>
+                </div>
 
-        <div className="space-y-4">
-          <div className="flex items-start space-x-4">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <FileText className="h-5 w-5 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Description</p>
-              <p className="font-medium">{selectedEvent.eventDescription}</p>
-            </div>
-          </div>
-        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <User className="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Host</p>
+                      <p className="font-medium">{getHostName(selectedEvent)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-green-100 rounded-full">
+                      <BookOpen className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Faculty</p>
+                      <p className="font-medium">{selectedEvent.faculty?.user.name || "Not assigned"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-purple-100 rounded-full">
+                      <Calendar className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Date & Time</p>
+                      <p className="font-medium">
+                        {formatDate(selectedEvent.eventDate)} {formatTime(selectedEvent.eventTime)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-yellow-100 rounded-full">
+                      <Clock className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Duration</p>
+                      <p className="font-medium">{selectedEvent.eventDuration}</p>
+                    </div>
+                  </div>
+                </div>
 
-        <div className="mt-4">
-          <p className="text-sm text-gray-600">Event Link:</p>
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              value={eventLink}
-              onChange={(e) => setEventLink(e.target.value)}
-              className="border p-2 rounded w-full"
-              placeholder="Enter event link..."
-              disabled={updateLoading}
-            />
-            <button
-              onClick={handleUpdateLink}
-              className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed ${
-                updateLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={updateLoading}
-            >
-             {updateLoading ? 'Updating...' : 'Update'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="p-3 bg-indigo-100 rounded-full">
+                      <ListTodo className="h-5 w-5 text-indigo-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Agenda</p>
+                      <p className="font-medium">{selectedEvent.eventAgenda}</p>
+                    </div>
+                  </div>
+                </div>
 
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="p-3 bg-purple-100 rounded-full">
+                      <FileText className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Description</p>
+                      <p className="font-medium">{selectedEvent.eventDescription}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600">Event Link:</p>
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="text"
+                      value={eventLink}
+                      onChange={(e) => setEventLink(e.target.value)}
+                      className="border p-2 rounded w-full"
+                      placeholder="Enter event link..."
+                      disabled={updateLoading}
+                    />
+                    <button
+                      onClick={handleUpdateLink}
+                      className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      disabled={updateLoading}
+                    >
+                      {updateLoading ? 'Updating...' : 'Update'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

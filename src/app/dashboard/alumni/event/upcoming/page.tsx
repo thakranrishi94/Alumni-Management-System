@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo, Plus} from "lucide-react";
+import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo, Plus } from "lucide-react";
 import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -232,11 +232,21 @@ const EventDetailsDialog = ({
         <div className="space-y-6">
           <div className="flex items-center space-x-6">
             <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-              {selectedEvent.eventTitle
-                .split(" ")
-                .map((word) => word[0])
-                .join("")
-                .toUpperCase()}
+              {(() => {
+                const words = selectedEvent.eventTitle
+                  .replace(/[&.]/g, ' ')
+                  .split(" ")
+                  .filter(word => word.length > 0);
+
+                if (words.length > 3) {
+                  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                }
+
+                return words
+                  .map(word => word[0])
+                  .join('')
+                  .toUpperCase();
+              })()}
             </div>
             <div>
               <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>

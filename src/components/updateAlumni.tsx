@@ -175,7 +175,7 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
         });
         onClose();
       }
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Error",
         description: "An unexpected error occurred",

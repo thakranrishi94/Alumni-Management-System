@@ -106,6 +106,7 @@ export default function PastEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isIssuingCertificate, setIsIssuingCertificate] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -156,8 +157,9 @@ export default function PastEvents() {
   //issueCertificate
   const handleIssueCertificate = async (eventId: number, alumniId: number) => {
     try {
+      setIsIssuingCertificate(true);
       const token = Cookies.get('ams_token');
-      const response = await axios.post<CertificateResponse>(
+      await axios.post<CertificateResponse>(
         `${process.env.NEXT_PUBLIC_API_URL}/certificate/issue`,
         {
           eventId,
@@ -177,12 +179,19 @@ export default function PastEvents() {
         variant: "default",
       });
 
+      // Close the dialog after successful issuance
+      setIsDialogOpen(false);
+      
+      // Reset the issuing state
+      setIsIssuingCertificate(false);
+
       // Optionally, you can open the certificate in a new tab
       // if (response.data.certificate?.certificateUrl) {
       //   window.open(response.data.certificate.certificateUrl, '_blank');
       // }
     } catch (error) {
       // console.error('Failed to issue certificate:', error);
+      setIsIssuingCertificate(false);
       if (axios.isAxiosError(error)) {
         toast({
           title: "Error",
@@ -198,8 +207,6 @@ export default function PastEvents() {
       }
     }
   };
-
-
 
   // Updated search to handle optional fields
   const filteredEvents = events && events.filter(event =>
@@ -316,13 +323,23 @@ export default function PastEvents() {
             {selectedEvent && (
               <div className="space-y-6">
                 <div className="flex items-center space-x-6">
-                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                    {selectedEvent.eventTitle
-                      .split(" ")
-                      .map((word) => word[0])
-                      .join("")
-                      .toUpperCase()}
-                  </div>
+                <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+              {(() => {
+                const words = selectedEvent.eventTitle
+                  .replace(/[&.]/g, ' ')
+                  .split(" ")
+                  .filter(word => word.length > 0);
+
+                if (words.length > 3) {
+                  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                }
+
+                return words
+                  .map(word => word[0])
+                  .join('')
+                  .toUpperCase();
+              })()}
+            </div>
                   <div>
                     <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>
                     <p className="text-gray-600">{selectedEvent.eventType}</p>
@@ -417,11 +434,11 @@ export default function PastEvents() {
                   </div>
                   <div className="mt-4">
                     <button
-                      className="bg-blue-700 p-2 rounded-sm text-xs text-white font-bold"
+                      className={`bg-blue-700 p-2 rounded-sm text-xs text-white font-bold ${isIssuingCertificate ? 'opacity-75 cursor-not-allowed' : ''}`}
                       onClick={() => {
-                        if (selectedEvent && selectedEvent.alumniId) {
+                        if (!isIssuingCertificate && selectedEvent && selectedEvent.alumniId) {
                           handleIssueCertificate(selectedEvent.eventRequestId, selectedEvent.alumniId);
-                        } else {
+                        } else if (!selectedEvent?.alumniId) {
                           toast({
                             title: "Error",
                             description: "Cannot issue a certificate for Admin",
@@ -429,8 +446,9 @@ export default function PastEvents() {
                           });
                         }
                       }}
+                      disabled={isIssuingCertificate}
                     >
-                      Issue Certificate
+                      {isIssuingCertificate ? 'Issuing...' : 'Issue Certificate'}
                     </button>
                     <button className="bg-blue-700 p-2 ml-4 px-5 rounded-sm text-xs text-white font-bold">Create Post</button>
                   </div>
