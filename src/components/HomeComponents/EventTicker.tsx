@@ -1,27 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-interface Event {
+// Type definitions based on your Prisma schema
+interface EventRequestData {
+  eventRequestId: number;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  eventType: 'WEBINAR' | 'WORKSHOP' | 'SEMINAR' | 'LECTURE';
+  requestStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+}
+
+// Simplified event type for display
+interface TickerEvent {
   id: number;
   title: string;
   date: string;
+  type: string;
 }
 
 const EventTicker = () => {
-  const events: Event[] = [
-    { id: 1, title: "Summer Concert 2025", date: "June 15" },
-    { id: 2, title: "Tech Conference", date: "July 20" },
-    { id: 3, title: "Food Festival", date: "August 5" },
-    { id: 4, title: "Art Exhibition", date: "Sept 10" },
-    { id: 5, title: "Sports Tournament", date: "Oct 1" },
-  ];
+  const [events, setEvents] = useState<TickerEvent[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get<EventRequestData[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/event/upcomingEvents`
+        );
+        
+        // Transform API data to the format needed for the ticker
+        const formattedEvents = response.data
+          .filter(event => event.requestStatus === 'APPROVED') // Only show approved events
+          .map(event => {
+            // Format the date for display
+            const eventDate = new Date(event.eventDate);
+            const formattedDate = eventDate.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric'
+            });
+            
+            return {
+              id: event.eventRequestId,
+              title: event.eventTitle,
+              date: formattedDate,
+              type: event.eventType.charAt(0) + event.eventType.slice(1).toLowerCase()
+            };
+          });
+        
+        setEvents(formattedEvents);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load events');
+        console.error('Error fetching events:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Triplicate events for continuous scrolling effect
   const triplicatedEvents = [...events, ...events, ...events];
+
+  if (loading) {
+    return (
+      <div className="w-full bg-gradient-to-r from-indigo-900 to-purple-900 p-10 text-center">
+        <div className="text-white">Loading events...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full bg-gradient-to-r from-indigo-900 to-purple-900 p-10 text-center">
+        <div className="text-red-300">{error}</div>
+      </div>
+    );
+  }
+
+  // If there are no events
+  if (events.length === 0) {
+    return (
+      <div className="w-full bg-gradient-to-r from-indigo-900 to-purple-900 p-10 text-center">
+        <div className="text-white">No upcoming events found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-gradient-to-r from-indigo-900 to-purple-900">
       <div
         className="overflow-hidden"
-        style={{ isolation: 'isolate' }} // Prevents stacking context issues
+        style={{ isolation: 'isolate' }}
       >
         {/* Heading Section */}
         <div className="text-center py-6">
@@ -51,6 +126,9 @@ const EventTicker = () => {
                   </span>
                   <span className="text-violet-300 text-sm transition-colors duration-200 ease-in-out group-hover:text-white/80">
                     {event.date}
+                  </span>
+                  <span className="text-pink-300/80 text-xs px-2 py-1 bg-white/10 rounded-full">
+                    {event.type}
                   </span>
                 </div>
                 <span className="text-white/40 mx-4">•</span>

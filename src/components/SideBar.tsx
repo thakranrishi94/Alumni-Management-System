@@ -92,6 +92,9 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
         <div className="p-6">
           <div className="flex flex-col items-center">
             <div className="h-40 w-30 p-5 relative">
+              <Link
+              href={'/'}
+              >
               <Image
                 src="/logo.jpg"
                 alt="Logo"
@@ -100,6 +103,7 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
                 className="object-cover"
                 priority
               />
+              </Link>
             </div>
             <h1 className="text-xl font-bold">{title}</h1>
           </div>
