@@ -410,7 +410,7 @@ export default function PastEvents() {
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-4">
+                  {/* <div className="space-y-4">
                     <div className="flex items-start space-x-4">
                       <div className="p-3 bg-purple-100 rounded-full">
                         <Link2 className="h-5 w-5 text-purple-500" />
@@ -431,7 +431,7 @@ export default function PastEvents() {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="mt-4">
                     <button
                       className={`bg-blue-700 p-2 rounded-sm text-xs text-white font-bold ${isIssuingCertificate ? 'opacity-75 cursor-not-allowed' : ''}`}

@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import UpdateAdmin from "./UpdateAdmin"; // Import the UpdateAdmin component
 
 type MenuItem = {
   title: string;
@@ -22,6 +23,8 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  // Add state for UpdateAdmin dialog
+  const [isUpdateAdminOpen, setIsUpdateAdminOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -153,7 +156,7 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
 
         {/* Footer Actions */}
         <div className="mt-auto">
-          {/* Profile Update Link */}
+          {/* Profile Update Link
           <div className="p-4 border-t border-gray-200">
             <Link
               href="/profile-update"
@@ -164,6 +167,19 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
               </span>
               <span>Update Profile</span>
             </Link>
+          </div> */}
+
+          {/* Add Update Password Button */}
+          <div className="p-4 border-t border-gray-200">
+            <button
+              onClick={() => setIsUpdateAdminOpen(true)}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <span className="mr-2" aria-hidden="true">
+                🔒
+              </span>
+              <span>Update Password</span>
+            </button>
           </div>
 
           {/* Logout Button */}
@@ -194,6 +210,12 @@ const SideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
           aria-hidden="true"
         />
       )}
+
+      {/* Render the UpdateAdmin component */}
+      <UpdateAdmin 
+        open={isUpdateAdminOpen} 
+        onClose={() => setIsUpdateAdminOpen(false)} 
+      />
     </section>
   );
 };
