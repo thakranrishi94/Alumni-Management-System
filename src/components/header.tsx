@@ -67,140 +67,139 @@ export default function Header() {
     const handleMobileNavClick = () => {
         setIsMobileMenuOpen(false);
     };
-    // if(!pathname.startsWith('/dashboard'))
+    
     if(!pathname.startsWith('/dashboard')){ 
-        
-   
-    return (
-        <div className={`fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300 ${
-            isScrolled ? 'shadow-md' : ''
-        }`}>
-            <header className="relative flex items-center justify-between border-b border-solid border-b-gray-200 px-6 py-4">
-                <div className="flex items-center gap-4">
-                    <Link href="/" className="text-blue-600">
-                        <Image
-                            src="/logo.jpg"
-                            alt="logo"
-                            width={40}
-                            height={40}
-                            className="h-10 w-10 rounded"
-                            priority
-                        />
-                    </Link>
-                    <h2 className="text-lg font-bold text-gray-900">
-                        KR Managalam Alumni
-                    </h2>
-                </div>
-
-                <nav className="hidden md:flex gap-6">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={`relative text-sm font-medium hover:text-blue-600 transition-colors
-                                group pb-1
-                                ${pathname === link.href ? 'text-blue-600' : 'text-gray-900'}
-                            `}
-                        >
-                            {link.label}
-                            <span className={`
-                                absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600
-                                group-hover:w-full group-hover:left-0 
-                                transition-all duration-300
-                                ${pathname === link.href ? 'w-full left-0' : ''}
-                            `}></span>
+        return (
+            <div className={`fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
+                <header className="relative flex items-center justify-between border-b border-solid border-b-gray-200 px-6 py-4">
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="text-blue-600">
+                            <Image
+                                src="/logo.jpg"
+                                alt="logo"
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded"
+                                priority
+                            />
                         </Link>
-                    ))}
-                </nav>
+                        <h2 className="text-lg font-bold text-gray-900">
+                            KR Managalam Alumni
+                        </h2>
+                    </div>
 
-                <div className="hidden md:flex gap-3">
-                    {isLoggedIn ? (
-                        <>
-                            <Link href={getDashboardRoute()}>
-                                <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-blue-700 transition-colors">
-                                    Dashboard
-                                </button>
-                            </Link>
-                            <button 
-                                onClick={handleLogout}
-                                className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors"
-                            >
-                                Logout
-                            </button>
-                        </>
-                    ) : (
-                        <Link href="/login">
-                            <button className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors">
-                                Sign In
-                            </button>
-                        </Link>
-                    )}
-                </div>
-
-                <button 
-                    className="md:hidden"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                    {isMobileMenuOpen ? (
-                        <X className="h-6 w-6 text-gray-600" />
-                    ) : (
-                        <Menu className="h-6 w-6 text-gray-600" />
-                    )}
-                </button>
-
-                {isMobileMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 md:hidden shadow-lg">
-                        <nav className="flex flex-col p-4">
-                            {navLinks.map((link) => (
+                    <nav className="hidden md:flex gap-6">
+                        {navLinks.map((link) => {
+                            const isActive = pathname === link.href;
+                            return (
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`relative text-sm font-medium hover:text-blue-600 transition-colors py-2
-                                        group
-                                        ${pathname === link.href ? 'text-blue-600' : 'text-gray-900'}`}
-                                    onClick={handleMobileNavClick}
+                                    className={`relative text-sm font-medium hover:text-blue-600 transition-colors pb-1 ${isActive ? 'text-blue-600' : 'text-gray-900'}`}
                                 >
                                     {link.label}
-                                    <span className={`
-                                        absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600
-                                        group-hover:w-full group-hover:left-0 
-                                        transition-all duration-300
-                                        ${pathname === link.href ? 'w-full left-0' : ''}
-                                    `}></span>
+                                    {isActive ? (
+                                        // Active link - simple underline
+                                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
+                                    ) : (
+                                        // Inactive link - animated underline on hover
+                                        <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
+                                    )}
                                 </Link>
-                            ))}
-                            <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 mt-4">
-                                {isLoggedIn ? (
-                                    <>
-                                        <Link 
-                                            href={getDashboardRoute()}
-                                            onClick={handleMobileNavClick}
-                                            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-blue-700 transition-colors text-center"
-                                        >
-                                            Dashboard
-                                        </Link>
-                                        <button 
-                                            onClick={handleLogout}
-                                            className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors"
-                                        >
-                                            Logout
-                                        </button>
-                                    </>
-                                ) : (
-                                    <Link 
-                                        href="/login"
-                                        onClick={handleMobileNavClick}
-                                        className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors text-center"
-                                    >
-                                        Sign In
-                                    </Link>
-                                )}
-                            </div>
-                        </nav>
+                            );
+                        })}
+                    </nav>
+
+                    <div className="hidden md:flex gap-3">
+                        {isLoggedIn ? (
+                            <>
+                                <Link href={getDashboardRoute()}>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-blue-700 transition-colors">
+                                        Dashboard
+                                    </button>
+                                </Link>
+                                <button 
+                                    onClick={handleLogout}
+                                    className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <Link href="/login">
+                                <button className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors">
+                                    Sign In
+                                </button>
+                            </Link>
+                        )}
                     </div>
-                )}
-            </header>
-        </div>
-    );
-}
+
+                    <button 
+                        className="md:hidden"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        {isMobileMenuOpen ? (
+                            <X className="h-6 w-6 text-gray-600" />
+                        ) : (
+                            <Menu className="h-6 w-6 text-gray-600" />
+                        )}
+                    </button>
+
+                    {isMobileMenuOpen && (
+                        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 md:hidden shadow-lg">
+                            <nav className="flex flex-col p-4">
+                                {navLinks.map((link) => {
+                                    const isActive = pathname === link.href;
+                                    return (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            className={`relative text-sm font-medium hover:text-blue-600 transition-colors py-2 ${isActive ? 'text-blue-600' : 'text-gray-900'}`}
+                                            onClick={handleMobileNavClick}
+                                        >
+                                            {link.label}
+                                            {isActive ? (
+                                                // Active link - simple underline
+                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
+                                            ) : (
+                                                // Inactive link - animated underline on hover
+                                                <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
+                                            )}
+                                        </Link>
+                                    );
+                                })}
+                                <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 mt-4">
+                                    {isLoggedIn ? (
+                                        <>
+                                            <Link 
+                                                href={getDashboardRoute()}
+                                                onClick={handleMobileNavClick}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-blue-700 transition-colors text-center"
+                                            >
+                                                Dashboard
+                                            </Link>
+                                            <button 
+                                                onClick={handleLogout}
+                                                className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <Link 
+                                            href="/login"
+                                            onClick={handleMobileNavClick}
+                                            className="bg-gray-200 text-gray-900 px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-300 transition-colors text-center"
+                                        >
+                                            Sign In
+                                        </Link>
+                                    )}
+                                </div>
+                            </nav>
+                        </div>
+                    )}
+                </header>
+            </div>
+        );
+    }
 }

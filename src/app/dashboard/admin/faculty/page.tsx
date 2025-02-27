@@ -19,6 +19,7 @@ interface FacultyData {
   designation: string;
   school: string;
   updatedAt: string;
+  image?: string;
   user: {
     id: number;
     name: string;
@@ -144,6 +145,34 @@ export default function FacultyPage() {
     });
   };
 
+  // Function to generate initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word: string) => word[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  // Function to render profile image or initials
+  const renderProfileImage = (person: FacultyData) => {
+    if (person.image) {
+      return (
+        <img 
+          src={person.image} 
+          alt={`${person.user.name}`}
+          className="h-10 w-10 rounded-full object-cover"
+        />
+      );
+    } else {
+      return (
+        <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+          {getInitials(person.user.name)}
+        </div>
+      );
+    }
+  };
+
   // Filter faculty based on search query
   const filteredFaculty = faculty.filter(
     (person) =>
@@ -187,6 +216,7 @@ export default function FacultyPage() {
           <table className="w-full">
             <thead className="bg-gray-200">
               <tr>
+                <th className="p-4 text-left">Profile</th>
                 <th className="p-4 text-left">Name</th>
                 <th className="p-4 text-left">Email</th>
                 <th className="p-4 text-left">School</th>
@@ -202,6 +232,9 @@ export default function FacultyPage() {
                   className="hover:bg-gray-50 cursor-pointer"
                   onClick={() => handleEditClick(person)}
                 >
+                  <td className="p-4">
+                    {renderProfileImage(person)}
+                  </td>
                   <td className="p-4">{person.user.name}</td>
                   <td className="p-4">{person.user.email}</td>
                   <td className="p-4">{person.school}</td>
@@ -239,13 +272,17 @@ export default function FacultyPage() {
               <div className="space-y-6">
                 {/* Profile Section */}
                 <div className="flex items-center space-x-6">
-                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                    {selectedFaculty.user.name
-                      .split(" ")
-                      .map((word: string) => word[0])
-                      .join("")
-                      .toUpperCase()}
-                  </div>
+                  {selectedFaculty.image ? (
+                    <img 
+                      src={selectedFaculty.image} 
+                      alt={`${selectedFaculty.user.name}`}
+                      className="h-20 w-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                      {getInitials(selectedFaculty.user.name)}
+                    </div>
+                  )}
                   <div>
                     <h2 className="text-2xl font-bold">
                       {selectedFaculty.user.name}
@@ -253,7 +290,6 @@ export default function FacultyPage() {
                     <p className="text-gray-600">{selectedFaculty.user.email}</p>
                   </div>
                 </div>
-
                 {/* Details Section */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="flex items-center space-x-4">

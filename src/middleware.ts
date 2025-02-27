@@ -23,9 +23,16 @@ export function middleware(request: NextRequest) {
     '/dashboard/admin/event/upcoming',
     '/dashboard/admin/event/past-event',
     '/dashboard/admin/event/request',
+    '/dashboard/admin/event/rejected-event',
     '/dashboard/faculty/event/upcoming',
      '/dashboard/faculty/overview',
-    '/dashboard/faculty/event/past-event'
+    '/dashboard/faculty/event/past-event',
+    '/dashboard/faculty/certificates',
+    '/dashboard/alumni/overview',
+    '/dashboard/alumni/event/upcoming',
+    '/dashboard/alumni/event/past-event',
+    '/dashboard/alumni/certificates',
+
   ];
 
   if (!token && protectedPaths.includes(pathname)) {
@@ -54,8 +61,14 @@ export const config = {
     '/dashboard/admin/event/upcoming',
     '/dashboard/admin/event/past-event',
     '/dashboard/admin/event/request',
+    '/dashboard/admin/event/rejected-event',
     '/dashboard/faculty/event/upcoming',
-    '/dashboard/faculty/overview',
-    '/dashboard/faculty/event/past-event'
+     '/dashboard/faculty/overview',
+    '/dashboard/faculty/event/past-event',
+    '/dashboard/faculty/certificates',
+    '/dashboard/alumni/overview',
+    '/dashboard/alumni/event/upcoming',
+    '/dashboard/alumni/event/past-event',
+    '/dashboard/alumni/certificates',
   ]
 };

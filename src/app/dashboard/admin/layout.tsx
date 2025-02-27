@@ -1,5 +1,5 @@
 import SideBar from "@/components/SideBar";
-import "../../globals.css";
+// import "../../globals.css";
 import AdminMenu from "@/utils/AdminMenu.json";
 // import { SessionProvider } from "next-auth/react";
 export default function RootLayout({

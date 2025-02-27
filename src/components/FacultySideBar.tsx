@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import axios from "axios";
+import UpdateFaculty from "./UpdateFaculty"; // Import the FacultyUpdateForm component
 
 type MenuItem = {
   title: string;
@@ -16,12 +18,32 @@ type SideBarProps = {
   title: string;
 };
 
+// Define the FacultyData interface
+interface FacultyData {
+  id: number;
+  userId: number;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  designation: string;
+  school: string;
+  image: string | null;
+}
+
 const FacultySideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+
+  // State for FacultyUpdateForm
+  const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false);
+  const [facultyData, setFacultyData] = useState<FacultyData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -51,11 +73,36 @@ const FacultySideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
     setOpenMenu((prev) => (prev === title ? null : title));
   };
 
-  const router=useRouter();
   const handleLogout = () => {
     Cookies.remove("ams_token");
     Cookies.remove("ams_user_role");
     router.push('/login');
+  };
+
+  // Function to handle opening the update form
+  const handleOpenUpdateForm = async () => {
+    try {
+      setIsLoading(true);
+      const token = Cookies.get('ams_token');
+
+      // Fetch faculty data
+      const response = await axios.get<FacultyData>(
+        `${process.env.NEXT_PUBLIC_API_URL}/faculty/byId`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setFacultyData(response.data);
+      setIsUpdateFormOpen(true);
+    } catch (error) {
+      console.error('Error fetching faculty data:', error);
+      alert('Failed to load profile data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -141,15 +188,16 @@ const FacultySideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
 
         {/* Footer Actions */}
         <div className="mt-auto">
-          {/* Profile Update Link */}
+          {/* Profile Update Button */}
           <div className="p-4 border-t border-gray-200">
-            <Link
-              href="/profile-update"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+            <button
+              onClick={handleOpenUpdateForm}
+              disabled={isLoading}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <span className="mr-2" aria-hidden="true">👤</span>
-              <span>Update Profile</span>
-            </Link>
+              <span>{isLoading ? "Loading..." : "Update Profile"}</span>
+            </button>
           </div>
 
           {/* Logout Button */}
@@ -169,6 +217,15 @@ const FacultySideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
       <main className="flex-1 p-6 overflow-y-auto">
         {children}
       </main>
+
+      {/* Faculty Update Form */}
+      {facultyData && (
+        <UpdateFaculty
+          faculty={facultyData}
+          open={isUpdateFormOpen}
+          onClose={() => setIsUpdateFormOpen(false)}
+        />
+      )}
 
       {/* Mobile Backdrop */}
       {isMobile && isSidebarOpen && (
