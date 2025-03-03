@@ -3,6 +3,7 @@ import React from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useTypewriter, Cursor } from 'react-simple-typewriter';
+import Link from 'next/link';
 
 export default function AlumniAboutPage() {
   const [typewriterText] = useTypewriter({
@@ -167,11 +168,13 @@ export default function AlumniAboutPage() {
                 </div>
               ))}
             </div>
-            <button
+            <Link href="/signup">
+            <button 
               className="bg-white text-blue-800 px-8 py-3 rounded-full font-semibold text-lg hover:bg-blue-50 transition duration-300"
             >
               Register for Alumni Portal
             </button>
+            </Link>
           </div>
         </div>
       </section>

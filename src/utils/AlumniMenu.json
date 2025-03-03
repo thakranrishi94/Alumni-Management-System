@@ -11,6 +11,11 @@
         { "name": "Past Events", "link": "/dashboard/alumni/event/past-event" }
       ]
     },{
+      "title": "Alumni's connection",
+      "children": [
+        { "name": "All Alumni", "link": "/dashboard/alumni/all-alumni" }
+      ]
+    },{
       "title": "Certificates",
       "children": [
         { "name": "All Certificates", "link": "/dashboard/alumni/certificates" }

@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import Cookies from "js-cookie";
 import { useToast } from "@/hooks/use-toast";
+
+// Define the API error response type
+interface ApiErrorResponse {
+  message: string;
+  // Add other properties your API might return in errors
+}
 
 type AdminPasswordUpdateFormProps = {
   open: boolean;
@@ -135,10 +141,11 @@ export default function UpdateAdmin({ open, onClose }: AdminPasswordUpdateFormPr
         resetForm(); // Reset form after successful submission
         onClose();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       toast({
         title: "Error",
-        description: error.response?.data?.message || "An unexpected error occurred",
+        description: axiosError.response?.data?.message || "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {

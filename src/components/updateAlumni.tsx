@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { Mail, Phone, Briefcase, Award, FileText } from "lucide-react";
+import { Mail, Phone, Briefcase, Award, FileText, Link, Instagram, Facebook } from "lucide-react";
 import Cookies from "js-cookie";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,18 +26,26 @@ type AlumniUpdateFormProps = {
     organization: string;
     skills: string;
     image: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+    facebook: string | null;
+    bio: string | null;
   };
   open: boolean;
   onClose: () => void;
 };
 
 export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdateFormProps) {
-    const { toast } = useToast();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     password: "",
     organization: alumni?.organization ?? "",
     designation: alumni?.designation ?? "",
     skills: alumni?.skills ?? "",
+    linkedin: alumni?.linkedin ?? "",
+    instagram: alumni?.instagram ?? "",
+    facebook: alumni?.facebook ?? "",
+    bio: alumni?.bio ?? "",
   });
   
   const [formErrors, setFormErrors] = useState({
@@ -45,6 +53,8 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
     organization: "",
     designation: "",
     skills: "",
+    linkedin: "",
+    bio: "",
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,6 +104,8 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
       organization: "",
       designation: "",
       skills: "",
+      linkedin: "",
+      bio: "",
     };
 
     if (formData.password && formData.password.length < 8) {
@@ -113,6 +125,16 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
 
     if (!formData.skills.trim()) {
       errors.skills = "Skills are required";
+      isValid = false;
+    }
+
+    if (!formData.linkedin.trim()) {
+      errors.linkedin = "LinkedIn profile is required";
+      isValid = false;
+    }
+
+    if (!formData.bio?.trim()) {
+      errors.bio = "A short bio is required";
       isValid = false;
     }
 
@@ -140,6 +162,10 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
       formDataObj.append("organization", formData.organization);
       formDataObj.append("designation", formData.designation);
       formDataObj.append("skills", formData.skills);
+      formDataObj.append("linkedin", formData.linkedin);
+      formDataObj.append("instagram", formData.instagram || "");
+      formDataObj.append("facebook", formData.facebook || "");
+      formDataObj.append("bio", formData.bio || "");
       
       if (imageFile) {
         // formDataObj.append("image", imageFile);
@@ -186,6 +212,7 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
       setIsSubmitting(false);
     }
   };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
@@ -225,6 +252,28 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
                 />
               </div>
             </div>
+          </div>
+
+          {/* Bio Section */}
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-blue-100 rounded-full">
+                <FileText className="h-4 w-4 text-blue-500" />
+              </div>
+              <label htmlFor="bio" className="text-sm font-medium">Bio</label>
+            </div>
+            <textarea 
+              id="bio"
+              name="bio"
+              placeholder="Write a short bio about yourself" 
+              value={formData.bio || ""}
+              onChange={handleInputChange}
+              className="mt-1 w-full text-sm p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+            {formErrors.bio && (
+              <p className="text-xs text-red-500">{formErrors.bio}</p>
+            )}
           </div>
           
           {/* Two Column Main Section */}
@@ -296,6 +345,27 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
                   <p className="text-xs text-red-500">{formErrors.organization}</p>
                 )}
               </div>
+
+              {/* LinkedIn */}
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <div className="p-1.5 bg-blue-100 rounded-full">
+                    <Link className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <label htmlFor="linkedin" className="text-sm font-medium">LinkedIn Profile</label>
+                </div>
+                <Input 
+                  id="linkedin"
+                  name="linkedin"
+                  placeholder="Your LinkedIn profile URL" 
+                  value={formData.linkedin || ""}
+                  onChange={handleInputChange}
+                  className="mt-1 text-sm"
+                />
+                {formErrors.linkedin && (
+                  <p className="text-xs text-red-500">{formErrors.linkedin}</p>
+                )}
+              </div>
             </div>
             
             {/* Right Column */}
@@ -336,11 +406,47 @@ export default function AlumniUpdateForm({ alumni, open, onClose }: AlumniUpdate
                   value={formData.skills}
                   onChange={handleInputChange}
                   className="mt-1 w-full text-sm p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={4}
+                  rows={3}
                 />
                 {formErrors.skills && (
                   <p className="text-xs text-red-500">{formErrors.skills}</p>
                 )}
+              </div>
+
+              {/* Instagram */}
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <div className="p-1.5 bg-pink-100 rounded-full">
+                    <Instagram className="h-4 w-4 text-pink-500" />
+                  </div>
+                  <label htmlFor="instagram" className="text-sm font-medium">Instagram Profile</label>
+                </div>
+                <Input 
+                  id="instagram"
+                  name="instagram"
+                  placeholder="Your Instagram profile URL (optional)" 
+                  value={formData.instagram || ""}
+                  onChange={handleInputChange}
+                  className="mt-1 text-sm"
+                />
+              </div>
+
+              {/* Facebook */}
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <div className="p-1.5 bg-blue-100 rounded-full">
+                    <Facebook className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <label htmlFor="facebook" className="text-sm font-medium">Facebook Profile</label>
+                </div>
+                <Input 
+                  id="facebook"
+                  name="facebook"
+                  placeholder="Your Facebook profile URL (optional)" 
+                  value={formData.facebook || ""}
+                  onChange={handleInputChange}
+                  className="mt-1 text-sm"
+                />
               </div>
             </div>
           </div>

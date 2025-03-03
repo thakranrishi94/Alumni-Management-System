@@ -1,0 +1,382 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import Cookies from "js-cookie";
+import { useToast } from "@/hooks/use-toast";
+
+// Types
+type Alumni = {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+};
+
+type EventType = "WEBINAR" | "WORKSHOP" | "SEMINAR" | "LECTURE";
+
+export default function AlumniConsentForm({ 
+  isOpen, 
+  onClose, 
+  onEventCreated 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  onEventCreated: () => Promise<void>;
+}) {
+  // Alumni state
+  const [alumni, setAlumni] = useState<Alumni[]>([]);
+  const [selectedAlumniId, setSelectedAlumniId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Form states
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventType, setEventType] = useState<EventType>("WEBINAR");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [eventTime, setEventTime] = useState("");
+  const [eventDuration, setEventDuration] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [eventAgenda, setEventAgenda] = useState("");
+  const [specialRequirements, setSpecialRequirements] = useState("");
+
+  // Fetch alumni list
+  useEffect(() => {
+    const fetchAlumni = async () => {
+      if (isOpen) {
+        try {
+          setLoading(true);
+          const response = await axios.get<Alumni[]>(`${process.env.NEXT_PUBLIC_API_URL}/alumni`);
+          setAlumni(response.data);
+        } catch (error) {
+          console.error("Failed to fetch alumni:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load alumni list",
+            variant: "destructive",
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAlumni();
+  }, [isOpen, toast]);
+
+  // Reset form
+  const resetForm = () => {
+    setSelectedAlumniId(null);
+    setEventTitle("");
+    setEventDescription("");
+    setEventType("WEBINAR");
+    setSelectedDate(undefined);
+    setEventTime("");
+    setEventDuration("");
+    setTargetAudience("");
+    setEventAgenda("");
+    setSpecialRequirements("");
+  };
+
+  // Handle form submission
+  const handleCreateEvent = async () => {
+    try {
+      // Validation checks
+      if (!selectedAlumniId) {
+        toast({
+          title: "Alumni Selection",
+          description: "Please select an alumni",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const requiredFields = {
+        'Event Title': eventTitle,
+        'Event Description': eventDescription,
+        'Event Type': eventType,
+        'Event Date': selectedDate,
+        'Event Time': eventTime,
+        'Event Duration': eventDuration,
+        'Target Audience': targetAudience,
+        'Event Agenda': eventAgenda,
+        'Special Requirements': specialRequirements
+      };
+
+      // Check each required field
+      for (const [fieldName, value] of Object.entries(requiredFields)) {
+        if (!value || value.toString().trim() === '') {
+          toast({
+            title: `${fieldName}`,
+            description: `${fieldName} is required`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Additional specific validations
+      if (!selectedDate) {
+        toast({
+          title: "Validation Error",
+          description: "Please select a date",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Time format validation
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(eventTime)) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter a valid time in HH:MM format",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Duration format suggestion
+      if (!eventDuration.includes('hour') && !eventDuration.includes('min')) {
+        toast({
+          title: "Validation Error",
+          description: "Please specify duration in hours or minutes (e.g., '2 hours' or '30 minutes')",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const eventDate = new Date(selectedDate);
+      eventDate.setUTCHours(0, 0, 0, 0);
+
+      // Prepare event data
+      const eventData = {
+        alumniId: selectedAlumniId,
+        facultyId: null,
+        eventTitle,
+        eventDescription,
+        eventType,
+        eventDate: eventDate.toISOString(),
+        eventTime,
+        eventDuration,
+        targetAudience,
+        eventAgenda,
+        specialRequirements,
+        requestStatus: "PENDING" as const,
+      };
+
+      const token = Cookies.get('ams_token');
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event/admin-create`, eventData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      // Refresh event list
+      await onEventCreated();
+      resetForm();
+      onClose();
+
+      toast({
+        title: "Success",
+        description: "Alumni event created successfully",
+      });
+    } catch (error) {
+      console.error("Failed to create alumni event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create alumni event",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-full sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl md:text-2xl font-bold">Create Alumni Event</DialogTitle>
+          <DialogDescription>Create an event on behalf of an alumni</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Alumni Selection */}
+          <div className="flex flex-col">
+            <Label htmlFor="alumniSelect">Select Alumni</Label>
+            <Select
+              value={selectedAlumniId?.toString() || ""}
+              onValueChange={(value) => setSelectedAlumniId(Number(value))}
+              disabled={loading}
+            >
+              <SelectTrigger className="w-full mt-1">
+                <SelectValue placeholder={loading ? "Loading alumni..." : "Select an alumni"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-56 overflow-y-auto">
+                {alumni.map((alumniItem) => (
+                  <SelectItem key={alumniItem.id} value={alumniItem.id.toString()}>
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-blue-500" />
+                      <span>{alumniItem.user.name} ({alumniItem.user.email})</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Row 1: Event Title & Event Type */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventTitle">Event Title</Label>
+              <Input
+                id="eventTitle"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="eventType">Event Type</Label>
+              <Select
+                value={eventType}
+                onValueChange={(value: EventType) => setEventType(value)}
+                required
+              >
+                <SelectTrigger className="w-full mt-1">
+                  <SelectValue placeholder="Select event type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="WEBINAR">Webinar</SelectItem>
+                  <SelectItem value="WORKSHOP">Workshop</SelectItem>
+                  <SelectItem value="SEMINAR">Seminar</SelectItem>
+                  <SelectItem value="LECTURE">Lecture</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Row 2: Date & Time */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventDate">Date</Label>
+              <Input
+                id="eventDate"
+                type="date"
+                value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                className="w-full mt-1"
+                min={format(new Date(), 'yyyy-MM-dd')}
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="eventTime">Time</Label>
+              <Input
+                id="eventTime"
+                type="time"
+                value={eventTime}
+                onChange={(e) => setEventTime(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Duration & Target Audience */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventDuration">Duration</Label>
+              <Input
+                id="eventDuration"
+                value={eventDuration}
+                onChange={(e) => setEventDuration(e.target.value)}
+                placeholder="e.g., 2 hours"
+                className="w-full mt-1"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="targetAudience">Target Audience</Label>
+              <Input
+                id="targetAudience"
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 4: Description & Agenda */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="eventDescription">Description</Label>
+              <Input
+                id="eventDescription"
+                value={eventDescription}
+                onChange={(e) => setEventDescription(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="eventAgenda">Agenda</Label>
+              <Input
+                id="eventAgenda"
+                value={eventAgenda}
+                onChange={(e) => setEventAgenda(e.target.value)}
+                className="w-full mt-1"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Special Requirements */}
+          <div className="flex flex-col">
+            <Label htmlFor="specialRequirements">Special Requirements</Label>
+            <Input
+              id="specialRequirements"
+              value={specialRequirements}
+              onChange={(e) => setSpecialRequirements(e.target.value)}
+              className="w-full mt-1"
+              required
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateEvent}
+              className="bg-blue-600 hover:bg-blue-500"
+            >
+              Create Alumni Event
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

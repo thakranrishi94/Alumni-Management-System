@@ -214,13 +214,13 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  { label: "Full Name", name: "name", type: "text" },
+                  { label: "Full Name", name: "name", type: "text"},
                   { label: "Email Address", name: "email", type: "email" },
                   { label: "Phone Number", name: "phone", type: "tel" },
                   { label: "Batch Year", name: "batch", type: "text" },
-                  { label: "Course", name: "course", type: "text" },
-                  { label: "Current Organization", name: "organization", type: "text" },
-                  { label: "Designation", name: "designation", type: "text" },
+                  { label: "Programme", name: "course", type: "text" },
+                  { label: "Current Organization/College", name: "organization", type: "text" },
+                  { label: "Designation/Course", name: "designation", type: "text" },
                   { label: "Skills", name: "skills", type: "text" },
                   { label: "Password", name: "password", type: "password" },
                   { label: "Confirm Password", name: "confirmPassword", type: "password" },

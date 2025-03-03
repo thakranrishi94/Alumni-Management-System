@@ -18,19 +18,16 @@ import {
   Search,
   ListTodo,
   Target,
-  AlertCircle
+  AlertCircle,
+  UserPlus
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-// import { Calendar as CalendarIcon } from "lucide-react";
-// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-// import { cn } from "@/lib/utils";
-// import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-// import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { useToast } from "@/hooks/use-toast";
+import AlumniConsentForm from "@/components/HomeComponents/AlumniConsentForm";
 
 // Types
 type Faculty = {
@@ -75,6 +72,7 @@ export default function EventRequestPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventRequest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState(false);
+  const [isAlumniEventFormOpen, setIsAlumniEventFormOpen] = useState(false); // New state for Alumni Event Form
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [faculties, setFaculties] = useState<Faculty[]>([]);
@@ -330,6 +328,24 @@ export default function EventRequestPage() {
     }
   };
 
+  // Handle refresh events after alumni event creation
+  const handleAlumniEventCreated = async () => {
+    try {
+      const eventResponse = await axios.get<EventRequest[]>(`${process.env.NEXT_PUBLIC_API_URL}/event`);
+      setEventRequests(eventResponse.data);
+      setFilteredEvents(eventResponse.data);
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Failed to refresh events:", error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh events after creating alumni event",
+        variant: "destructive",
+      });
+      return Promise.reject(error);
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
   if (error) return <div className="flex items-center justify-center h-screen text-red-500">{error}</div>;
 
@@ -341,12 +357,20 @@ export default function EventRequestPage() {
             <h1 className="text-xl md:text-2xl font-bold">Event Requests</h1>
             <p className="text-gray-600">Manage Event Requests</p>
           </div>
-          <Button
-            onClick={() => setIsCreateEventDialogOpen(true)}
-            className="bg-blue-600 hover:bg-blue-500 w-full md:w-auto"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Create New Event
-          </Button>
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 w-full md:w-auto">
+            <Button
+              onClick={() => setIsAlumniEventFormOpen(true)}
+              className="bg-green-600 hover:bg-green-500 w-full md:w-auto"
+            >
+              <UserPlus className="mr-2 h-4 w-4" /> Alumni Consent Form
+            </Button>
+            <Button
+              onClick={() => setIsCreateEventDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-500 w-full md:w-auto"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Create New Event
+            </Button>
+          </div>
         </div>
 
         <div className="mt-6 relative">
@@ -409,141 +433,141 @@ export default function EventRequestPage() {
 
       {/* Event Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-  <DialogContent className="w-[95vw] max-h-[90vh] overflow-hidden sm:max-w-7xl">
-    <DialogHeader className="sticky top-0 z-10">
-      <DialogTitle className="text-xl md:text-2xl font-bold">Event Request Details</DialogTitle>
-    </DialogHeader>
-    
-    {selectedEvent && (
-      <div className="overflow-y-auto max-h-[calc(90vh-8rem)] pr-2">
-        <div className="space-y-6 py-4">
-          {/* Header Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold">{selectedEvent.eventTitle}</h2>
-            <p className="text-gray-600">{selectedEvent.eventType}</p>
-            <p className="mt-2">{selectedEvent.eventDescription}</p>
-          </div>
-
-          {/* Responsive Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Column 1: Basic Info */}
-            <div className="space-y-4  p-4 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <User className="h-5 w-5 text-blue-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Host</p>
-                  <p className="truncate">{selectedEvent.alumni?.user.name || "Admin"}</p>
+        <DialogContent className="w-[95vw] max-h-[90vh] overflow-hidden sm:max-w-7xl">
+          <DialogHeader className="sticky top-0 z-10">
+            <DialogTitle className="text-xl md:text-2xl font-bold">Event Request Details</DialogTitle>
+          </DialogHeader>
+          
+          {selectedEvent && (
+            <div className="overflow-y-auto max-h-[calc(90vh-8rem)] pr-2">
+              <div className="space-y-6 py-4">
+                {/* Header Section */}
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold">{selectedEvent.eventTitle}</h2>
+                  <p className="text-gray-600">{selectedEvent.eventType}</p>
+                  <p className="mt-2">{selectedEvent.eventDescription}</p>
                 </div>
-              </div>
 
-              <div className="flex items-center space-x-3">
-                <BookOpen className="h-5 w-5 text-green-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Faculty</p>
-                  <p className="truncate">{selectedEvent.faculty?.user.name || 'Not assigned'}</p>
-                </div>
-              </div>
+                {/* Responsive Grid Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Column 1: Basic Info */}
+                  <div className="space-y-4  p-4 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <User className="h-5 w-5 text-blue-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Host</p>
+                        <p className="truncate">{selectedEvent.alumni?.user.name || "Admin"}</p>
+                      </div>
+                    </div>
 
-              <div className="flex items-center space-x-3">
-                <Calendar className="h-5 w-5 text-purple-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Date & Time</p>
-                  <p className="truncate">
-                    {format(new Date(selectedEvent.eventDate), 'PP')} at {selectedEvent.eventTime}
-                  </p>
-                </div>
-              </div>
+                    <div className="flex items-center space-x-3">
+                      <BookOpen className="h-5 w-5 text-green-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Faculty</p>
+                        <p className="truncate">{selectedEvent.faculty?.user.name || 'Not assigned'}</p>
+                      </div>
+                    </div>
 
-              <div className="flex items-center space-x-3">
-                <Clock className="h-5 w-5 text-orange-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Duration</p>
-                  <p className="truncate">{selectedEvent.eventDuration}</p>
-                </div>
-              </div>
-            </div>
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="h-5 w-5 text-purple-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Date & Time</p>
+                        <p className="truncate">
+                          {format(new Date(selectedEvent.eventDate), 'PP')} at {selectedEvent.eventTime}
+                        </p>
+                      </div>
+                    </div>
 
-            {/* Column 2: Target & Requirements */}
-            <div className="space-y-4 p-4 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <Target className="h-5 w-5 text-red-500 mt-1 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Target Audience</p>
-                  <p className="whitespace-pre-wrap break-words">{selectedEvent.targetAudience}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="h-5 w-5 text-yellow-500 mt-1 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Special Requirements</p>
-                  <p className="whitespace-pre-wrap break-words">{selectedEvent.specialRequirements}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Column 3: Agenda & Actions */}
-            <div className="space-y-4  p-4 rounded-lg  md:col-span-2 lg:col-span-1">
-              <div className="flex items-start space-x-3">
-                <ListTodo className="h-5 w-5 text-indigo-500 mt-1 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-semibold">Event Agenda</p>
-                  <p className="whitespace-pre-wrap break-words">{selectedEvent.eventAgenda}</p>
-                </div>
-              </div>
-
-              {selectedEvent.requestStatus === "PENDING" && (
-                <div className="space-y-4 pt-4 border-t mt-4">
-                  <div className="flex flex-col space-y-2">
-                    <Label htmlFor="faculty">Assign Faculty</Label>
-                    <Select
-                      value={selectedFacultyId?.toString() || ""}
-                      onValueChange={(value) => setSelectedFacultyId(Number(value))}
-                      disabled={faculties.length === 0}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={
-                          faculties.length === 0
-                            ? "No available faculty"
-                            : "Select a faculty member"
-                        } />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {faculties.map((faculty) => (
-                          <SelectItem key={faculty.id} value={faculty.id.toString()}>
-                            {faculty.user.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-5 w-5 text-orange-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Duration</p>
+                        <p className="truncate">{selectedEvent.eventDuration}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    <Button
-                      variant="outline"
-                      className="border-red-300 text-red-600 hover:bg-red-50 w-full sm:w-auto"
-                      onClick={() => handleEventStatus(selectedEvent.eventRequestId, "REJECTED")}
-                      disabled={updateLoading}
-                    >
-                      {updateLoading ? "Processing..." : "Reject"}
-                    </Button>
-                    <Button
-                      className="bg-green-600 hover:bg-green-500 text-white w-full sm:w-auto"
-                      onClick={() => handleEventStatus(selectedEvent.eventRequestId, "APPROVED")}
-                      disabled={!selectedFacultyId || updateLoading}
-                    >
-                      {updateLoading ? "Processing..." : "Approve"}
-                    </Button>
+                  {/* Column 2: Target & Requirements */}
+                  <div className="space-y-4 p-4 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Target className="h-5 w-5 text-red-500 mt-1 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Target Audience</p>
+                        <p className="whitespace-pre-wrap break-words">{selectedEvent.targetAudience}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <AlertCircle className="h-5 w-5 text-yellow-500 mt-1 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Special Requirements</p>
+                        <p className="whitespace-pre-wrap break-words">{selectedEvent.specialRequirements}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Column 3: Agenda & Actions */}
+                  <div className="space-y-4  p-4 rounded-lg  md:col-span-2 lg:col-span-1">
+                    <div className="flex items-start space-x-3">
+                      <ListTodo className="h-5 w-5 text-indigo-500 mt-1 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">Event Agenda</p>
+                        <p className="whitespace-pre-wrap break-words">{selectedEvent.eventAgenda}</p>
+                      </div>
+                    </div>
+
+                    {selectedEvent.requestStatus === "PENDING" && (
+                      <div className="space-y-4 pt-4 border-t mt-4">
+                        <div className="flex flex-col space-y-2">
+                          <Label htmlFor="faculty">Assign Faculty</Label>
+                          <Select
+                            value={selectedFacultyId?.toString() || ""}
+                            onValueChange={(value) => setSelectedFacultyId(Number(value))}
+                            disabled={faculties.length === 0}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder={
+                                faculties.length === 0
+                                  ? "No available faculty"
+                                  : "Select a faculty member"
+                              } />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {faculties.map((faculty) => (
+                                <SelectItem key={faculty.id} value={faculty.id.toString()}>
+                                  {faculty.user.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                          <Button
+                            variant="outline"
+                            className="border-red-300 text-red-600 hover:bg-red-50 w-full sm:w-auto"
+                            onClick={() => handleEventStatus(selectedEvent.eventRequestId, "REJECTED")}
+                            disabled={updateLoading}
+                          >
+                            {updateLoading ? "Processing..." : "Reject"}
+                          </Button>
+                          <Button
+                            className="bg-green-600 hover:bg-green-500 text-white w-full sm:w-auto"
+                            onClick={() => handleEventStatus(selectedEvent.eventRequestId, "APPROVED")}
+                            disabled={!selectedFacultyId || updateLoading}
+                          >
+                            {updateLoading ? "Processing..." : "Approve"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Create Event Dialog */}
       <Dialog open={isCreateEventDialogOpen} onOpenChange={setIsCreateEventDialogOpen}>
@@ -693,6 +717,13 @@ export default function EventRequestPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Alumni Event Form Dialog */}
+      <AlumniConsentForm 
+        isOpen={isAlumniEventFormOpen} 
+        onClose={() => setIsAlumniEventFormOpen(false)}
+        onEventCreated={handleAlumniEventCreated}
+      />
     </div>
   );
 }

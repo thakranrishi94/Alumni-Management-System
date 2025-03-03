@@ -331,7 +331,7 @@ const EventSection: React.FC = () => {
     <section className="py-16 px-4 max-w-7xl mx-auto">
       {featuredEvents.length > 0 && (
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center">Featured Events</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center">Our Times With Alumni</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredEvents.map(event => (
               <ClientOnlyEventCard

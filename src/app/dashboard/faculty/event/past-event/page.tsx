@@ -8,10 +8,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo, Link2 } from "lucide-react";
+import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo } from "lucide-react";
 import Cookies from "js-cookie";
-import Link from "next/link";
+// import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import CreatePost from "@/components/CreatePost";
 //interface for certificate
 interface CertificateResponse {
   message: string;
@@ -107,7 +108,7 @@ export default function PastEvents() {
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isIssuingCertificate, setIsIssuingCertificate] = useState(false);
-
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState<boolean>(false);
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -181,7 +182,7 @@ export default function PastEvents() {
 
       // Close the dialog after successful issuance
       setIsDialogOpen(false);
-      
+
       // Reset the issuing state
       setIsIssuingCertificate(false);
 
@@ -323,23 +324,23 @@ export default function PastEvents() {
             {selectedEvent && (
               <div className="space-y-6">
                 <div className="flex items-center space-x-6">
-                <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-              {(() => {
-                const words = selectedEvent.eventTitle
-                  .replace(/[&.]/g, ' ')
-                  .split(" ")
-                  .filter(word => word.length > 0);
+                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
+                    {(() => {
+                      const words = selectedEvent.eventTitle
+                        .replace(/[&.]/g, ' ')
+                        .split(" ")
+                        .filter(word => word.length > 0);
 
-                if (words.length > 3) {
-                  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-                }
+                      if (words.length > 3) {
+                        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                      }
 
-                return words
-                  .map(word => word[0])
-                  .join('')
-                  .toUpperCase();
-              })()}
-            </div>
+                      return words
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase();
+                    })()}
+                  </div>
                   <div>
                     <h2 className="text-2xl font-bold">{selectedEvent.eventTitle}</h2>
                     <p className="text-gray-600">{selectedEvent.eventType}</p>
@@ -450,15 +451,30 @@ export default function PastEvents() {
                     >
                       {isIssuingCertificate ? 'Issuing...' : 'Issue Certificate'}
                     </button>
-                    <button className="bg-blue-700 p-2 ml-4 px-5 rounded-sm text-xs text-white font-bold">Create Post</button>
+                    <button
+                      className="bg-blue-700 p-2 ml-4 px-5 rounded-sm text-xs text-white font-bold"
+                      onClick={() => setIsCreatePostOpen(true)}
+                    >
+                      Create Post
+                    </button>
                   </div>
                 </div>
               </div>
+
+            )}
+            {selectedEvent && (
+              <CreatePost
+                eventId={selectedEvent.eventRequestId}
+                eventTitle={selectedEvent.eventTitle}
+                isOpen={isCreatePostOpen}
+                setIsOpen={setIsCreatePostOpen}
+              />
             )}
           </DialogContent>
         </Dialog>
 
       </main>
     </div>
+
   );
 }

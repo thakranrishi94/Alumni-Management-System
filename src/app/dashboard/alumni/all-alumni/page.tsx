@@ -174,8 +174,8 @@ export default function AlumniPage() {
     <div className="bg-gray-100 min-h-screen">
       {/* Main Content */}
       <main className="flex-1 p-8 overflow-auto">
-        <h1 className="text-2xl font-bold ml-5 md:ml-0">Alumni</h1>
-        <p className="text-gray-600">Manage alumni profiles, track engagement, and organize events</p>
+        <h1 className="text-2xl font-bold ml-5 md:ml-0">All Alumni</h1>
+        <p className="text-gray-600">All the alumnis are here</p>
 
         {/* Statistics Cards */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -231,70 +231,73 @@ export default function AlumniPage() {
         </div>
 
         {/* Alumni Table */}
-        <div className="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="p-4 text-left">Profile</th>
-                <th className="p-4 text-left">Name</th>
-                <th className="p-4 text-left">Email</th>
-                <th className="p-4 text-left">Grad Year</th>
-                <th className="p-4 text-left">Phone</th>
-                <th className="p-4 text-left">Course</th>
-                <th className="p-4 text-left">School</th>
-                <th className="p-4 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAlumni.map((person, index) => (
-                <tr
-                  key={index}
-                  onClick={() => handleRowClick(person)}
-                  className="hover:bg-gray-50 cursor-pointer"
-                >
-                  <td className="p-4">
-                    {person.image ? (
-                      <Image
-                        src={person.image}
-                        alt={safeGet(person, 'user.name', 'Alumni')}
-                        width={40}
-                        height={40}
-                        className="rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                        {getInitials(safeGet(person, 'user.name'))}
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-4">{safeGet(person, 'user.name')}</td>
-                  <td className="p-4">{safeGet(person, 'user.email')}</td>
-                  <td className="p-4">{safeGet(person, 'batch')}</td>
-                  <td className="p-4">{safeGet(person, 'user.phone')}</td>
-                  <td className="p-4">{safeGet(person, 'course')}</td>
-                  <td className="p-4">{safeGet(person, 'organization')}</td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-1 text-sm rounded-full ${safeGet(person, 'user.status') === "ACTIVE"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {safeGet(person, 'user.status', 'Unknown')}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
+      {/* Alumni Table with scroll */}
+<div className="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
+  <div className="max-h-[500px] overflow-auto">
+    <table className="w-full">
+      <thead className="bg-gray-200 sticky top-0">
+        <tr>
+          <th className="p-4 text-left">Profile</th>
+          <th className="p-4 text-left">Name</th>
+          <th className="p-4 text-left">Email</th>
+          <th className="p-4 text-left">Grad Year</th>
+          <th className="p-4 text-left">Phone</th>
+          <th className="p-4 text-left">Course</th>
+          <th className="p-4 text-left">School</th>
+          <th className="p-4 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredAlumni.map((person, index) => (
+          <tr
+            key={index}
+            onClick={() => handleRowClick(person)}
+            className="hover:bg-gray-50 cursor-pointer"
+          >
+            <td className="p-4">
+              {person.image ? (
+                <Image
+                  src={person.image}
+                  alt={safeGet(person, 'user.name', 'Alumni')}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                  {getInitials(safeGet(person, 'user.name'))}
+                </div>
+              )}
+            </td>
+            <td className="p-4">{safeGet(person, 'user.name')}</td>
+            <td className="p-4">{safeGet(person, 'user.email')}</td>
+            <td className="p-4">{safeGet(person, 'batch')}</td>
+            <td className="p-4">{safeGet(person, 'user.phone')}</td>
+            <td className="p-4">{safeGet(person, 'course')}</td>
+            <td className="p-4">{safeGet(person, 'organization')}</td>
+            <td className="p-4">
+              <span
+                className={`px-2 py-1 text-sm rounded-full ${
+                  safeGet(person, 'user.status') === "ACTIVE"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {safeGet(person, 'user.status', 'Unknown')}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
         {/* Alumni Details Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl sm:text-2xl font-bold">Alumni Details</DialogTitle>
-              <DialogDescription>View and manage alumni information</DialogDescription>
+              {/* <DialogDescription>View and manage alumni information</DialogDescription> */}
             </DialogHeader>
             {selectedAlumni && (
               <div className="space-y-4 sm:space-y-6">

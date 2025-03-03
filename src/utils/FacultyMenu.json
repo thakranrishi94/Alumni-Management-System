@@ -15,5 +15,10 @@
       "children": [
         { "name": "All Certificates", "link": "/dashboard/faculty/certificates" }
       ]
+    },{
+      "title": "Post",
+      "children": [
+        { "name": "All Post", "link": "/dashboard/faculty/post" }
+      ]
     }
   ]

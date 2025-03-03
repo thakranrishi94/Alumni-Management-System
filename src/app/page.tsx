@@ -35,11 +35,11 @@ export default function HomePage() {
                 autoSlideInterval={5000} // Optional: 5 seconds per slide
                 className="my-banner" // Optional: additional classes
             />
+            <EventTicker/>
             <EventsSection/>
             <AlumniSection/>
             <TestimonialSlider/>
             <GallerySlider/>
-            <EventTicker/>
         </main>
     );
 }

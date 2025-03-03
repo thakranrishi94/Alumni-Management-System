@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { GraduationCap, Mail, Phone, User } from "lucide-react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -158,11 +159,16 @@ export default function FacultyPage() {
   const renderProfileImage = (person: FacultyData) => {
     if (person.image) {
       return (
-        <img 
-          src={person.image} 
-          alt={`${person.user.name}`}
-          className="h-10 w-10 rounded-full object-cover"
-        />
+        <div className="relative h-10 w-10">
+          <Image 
+            src={person.image} 
+            alt={`${person.user.name}`}
+            fill
+            sizes="40px"
+            className="rounded-full object-cover"
+            priority
+          />
+        </div>
       );
     } else {
       return (
@@ -273,11 +279,16 @@ export default function FacultyPage() {
                 {/* Profile Section */}
                 <div className="flex items-center space-x-6">
                   {selectedFaculty.image ? (
-                    <img 
-                      src={selectedFaculty.image} 
-                      alt={`${selectedFaculty.user.name}`}
-                      className="h-20 w-20 rounded-full object-cover"
-                    />
+                    <div className="relative h-20 w-20">
+                      <Image 
+                        src={selectedFaculty.image} 
+                        alt={`${selectedFaculty.user.name}`}
+                        fill
+                        sizes="80px"
+                        className="rounded-full object-cover"
+                        priority
+                      />
+                    </div>
                   ) : (
                     <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
                       {getInitials(selectedFaculty.user.name)}
@@ -439,7 +450,7 @@ export default function FacultyPage() {
               </div>
 
               <div>
-              <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700">
                   School
                 </label>
                 <input

@@ -1,13 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  console.log("Hello from middleware");
+  console.log("Hello This project is made by Rishabh Rajput and Manisha Swain");
   const token = request.cookies.get('ams_token')?.value;
   const userRole = request.cookies.get('ams_user_role')?.value;
   const { pathname } = request.nextUrl;
 
   // Public routes
-  const publicPaths = ['/login', '/register'];
+  const publicPaths = ['/login', '/signup'];
   
   // Redirect authenticated users from public routes
   if (token && publicPaths.includes(pathname)) {
@@ -53,7 +53,7 @@ export const config = {
     '/',
     '/admin/:path*',
     '/login',
-    '/register',
+    '/signup',
     '/dashboard/admin/overview',
     '/dashboard/admin/alumni',
     '/dashboard/admin/alumni/request',
