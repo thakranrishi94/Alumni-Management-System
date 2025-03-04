@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar, User, BookOpen, FileText, Tag, Clock, ListTodo } from "lucide-react";
 import Cookies from "js-cookie";
-import toast from "react-hot-toast";
+import { useToast } from "@/hooks/use-toast";
+// import toast from "react-hot-toast";
 
 // Update interface to make relationships optional
 interface Event {
@@ -45,7 +46,16 @@ interface ApiError {
   };
   message?: string;
 }
-
+//Api response interface
+interface ApiError {
+  response?: {
+    status?: number;
+    data?: {
+      error?: string;
+    };
+  };
+  message?: string;
+}
 // Utility functions remain the same
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -76,6 +86,7 @@ const getHostName = (event: Event): string => {
 };
 
 export default function UpcomingEvents() {
+    const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -141,6 +152,16 @@ export default function UpcomingEvents() {
   const handleUpdateLink = async () => {
     if (!selectedEvent) return;
 
+    // Check if eventLink is empty
+    if (!eventLink.trim()) {
+      toast({
+        title: "Error",
+        description: 'Link field should not be blank',
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUpdateLoading(true);
 
@@ -185,10 +206,14 @@ export default function UpcomingEvents() {
       // Update the selected event with the new link
       setSelectedEvent(prev => prev ? { ...prev, eventLink } : null);
 
+      // Show success toast and close the dialog
       toast({
         title: "Success",
-        description: "Event link updated successfully",
+        description: "Link Updated Successfully",
+        variant: "default",
       });
+      setIsDialogOpen(false);
+      
     } catch (err) {
       console.error("Failed to update event link:", err);
 
@@ -200,10 +225,9 @@ export default function UpcomingEvents() {
           config: err.config
         });
       }
-
       toast({
         title: "Error",
-        description: "Failed to update event link. Please try again.",
+        description:'Failed to update event link. Please try again.',
         variant: "destructive",
       });
     } finally {

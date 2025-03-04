@@ -164,6 +164,9 @@ export default function AlumniConsentForm({
       const eventDate = new Date(selectedDate);
       eventDate.setUTCHours(0, 0, 0, 0);
 
+      const formattedEventDate = selectedDate ? 
+    format(selectedDate, 'yyyy-MM-dd') : 
+    null;
       // Prepare event data
       const eventData = {
         alumniId: selectedAlumniId,
@@ -171,7 +174,7 @@ export default function AlumniConsentForm({
         eventTitle,
         eventDescription,
         eventType,
-        eventDate: eventDate.toISOString(),
+        eventDate: formattedEventDate,
         eventTime,
         eventDuration,
         targetAudience,
@@ -181,7 +184,7 @@ export default function AlumniConsentForm({
       };
 
       const token = Cookies.get('ams_token');
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event/admin-create`, eventData, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event/createEventForAlumniByAdmin`, eventData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -208,30 +211,30 @@ export default function AlumniConsentForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full sm:max-w-2xl">
+      <DialogContent className="w-full max-w-full sm:max-w-2xl mx-2 md:mx-auto overflow-y-auto max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl md:text-2xl font-bold">Create Alumni Event</DialogTitle>
-          <DialogDescription>Create an event on behalf of an alumni</DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold">Create Alumni Event</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base">Create an event on behalf of an alumni</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4 py-2">
           {/* Alumni Selection */}
           <div className="flex flex-col">
-            <Label htmlFor="alumniSelect">Select Alumni</Label>
+            <Label htmlFor="alumniSelect" className="text-sm sm:text-base">Select Alumni</Label>
             <Select
               value={selectedAlumniId?.toString() || ""}
               onValueChange={(value) => setSelectedAlumniId(Number(value))}
               disabled={loading}
             >
-              <SelectTrigger className="w-full mt-1">
+              <SelectTrigger className="w-full mt-1 text-sm sm:text-base">
                 <SelectValue placeholder={loading ? "Loading alumni..." : "Select an alumni"} />
               </SelectTrigger>
-              <SelectContent className="max-h-56 overflow-y-auto">
+              <SelectContent className="max-h-40 sm:max-h-56 overflow-y-auto">
                 {alumni.map((alumniItem) => (
                   <SelectItem key={alumniItem.id} value={alumniItem.id.toString()}>
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-blue-500" />
-                      <span>{alumniItem.user.name} ({alumniItem.user.email})</span>
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm">
+                      <User className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                      <span className="truncate">{alumniItem.user.name} ({alumniItem.user.email})</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -240,25 +243,25 @@ export default function AlumniConsentForm({
           </div>
 
           {/* Row 1: Event Title & Event Type */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-4">
             <div className="flex flex-col">
-              <Label htmlFor="eventTitle">Event Title</Label>
+              <Label htmlFor="eventTitle" className="text-sm sm:text-base">Event Title</Label>
               <Input
                 id="eventTitle"
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 required
               />
             </div>
             <div className="flex flex-col">
-              <Label htmlFor="eventType">Event Type</Label>
+              <Label htmlFor="eventType" className="text-sm sm:text-base">Event Type</Label>
               <Select
                 value={eventType}
                 onValueChange={(value: EventType) => setEventType(value)}
                 required
               >
-                <SelectTrigger className="w-full mt-1">
+                <SelectTrigger className="w-full mt-1 text-sm sm:text-base">
                   <SelectValue placeholder="Select event type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,76 +275,76 @@ export default function AlumniConsentForm({
           </div>
 
           {/* Row 2: Date & Time */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-4">
             <div className="flex flex-col">
-              <Label htmlFor="eventDate">Date</Label>
+              <Label htmlFor="eventDate" className="text-sm sm:text-base">Date</Label>
               <Input
                 id="eventDate"
                 type="date"
                 value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 min={format(new Date(), 'yyyy-MM-dd')}
                 required
               />
             </div>
             <div className="flex flex-col">
-              <Label htmlFor="eventTime">Time</Label>
+              <Label htmlFor="eventTime" className="text-sm sm:text-base">Time</Label>
               <Input
                 id="eventTime"
                 type="time"
                 value={eventTime}
                 onChange={(e) => setEventTime(e.target.value)}
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 required
               />
             </div>
           </div>
 
           {/* Row 3: Duration & Target Audience */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-4">
             <div className="flex flex-col">
-              <Label htmlFor="eventDuration">Duration</Label>
+              <Label htmlFor="eventDuration" className="text-sm sm:text-base">Duration</Label>
               <Input
                 id="eventDuration"
                 value={eventDuration}
                 onChange={(e) => setEventDuration(e.target.value)}
                 placeholder="e.g., 2 hours"
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 required
               />
             </div>
             <div className="flex flex-col">
-              <Label htmlFor="targetAudience">Target Audience</Label>
+              <Label htmlFor="targetAudience" className="text-sm sm:text-base">Target Audience</Label>
               <Input
                 id="targetAudience"
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 required
               />
             </div>
           </div>
 
           {/* Row 4: Description & Agenda */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-4">
             <div className="flex flex-col">
-              <Label htmlFor="eventDescription">Description</Label>
+              <Label htmlFor="eventDescription" className="text-sm sm:text-base">Description</Label>
               <Input
                 id="eventDescription"
                 value={eventDescription}
                 onChange={(e) => setEventDescription(e.target.value)}
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 required
               />
             </div>
             <div className="flex flex-col">
-              <Label htmlFor="eventAgenda">Agenda</Label>
+              <Label htmlFor="eventAgenda" className="text-sm sm:text-base">Agenda</Label>
               <Input
                 id="eventAgenda"
                 value={eventAgenda}
                 onChange={(e) => setEventAgenda(e.target.value)}
-                className="w-full mt-1"
+                className="w-full mt-1 text-sm sm:text-base"
                 required
               />
             </div>
@@ -349,28 +352,28 @@ export default function AlumniConsentForm({
 
           {/* Special Requirements */}
           <div className="flex flex-col">
-            <Label htmlFor="specialRequirements">Special Requirements</Label>
+            <Label htmlFor="specialRequirements" className="text-sm sm:text-base">Special Requirements</Label>
             <Input
               id="specialRequirements"
               value={specialRequirements}
               onChange={(e) => setSpecialRequirements(e.target.value)}
-              className="w-full mt-1"
+              className="w-full mt-1 text-sm sm:text-base"
               required
             />
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-3 sm:pt-4">
             <Button
               onClick={onClose}
               variant="outline"
-              className="border-gray-300"
+              className="border-gray-300 text-xs sm:text-sm py-1 h-8 sm:h-10"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateEvent}
-              className="bg-blue-600 hover:bg-blue-500"
+              className="bg-blue-600 hover:bg-blue-500 text-xs sm:text-sm py-1 h-8 sm:h-10"
             >
               Create Alumni Event
             </Button>
