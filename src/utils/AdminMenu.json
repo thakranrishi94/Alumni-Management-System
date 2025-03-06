@@ -26,5 +26,11 @@
       { "name": "Past Events", "link": "/dashboard/admin/event/past-event" },
       { "name": "Rejected Events", "link": "/dashboard/admin/event/rejected-event" }
     ]
+  },
+  {
+    "title": "Shared Job Opportunities",
+    "children": [
+      { "name": "All Shared Opportunities", "link": "/dashboard/admin/job-opportunity" }
+    ]
   }
 ]

@@ -32,6 +32,7 @@ export function middleware(request: NextRequest) {
     '/dashboard/alumni/event/upcoming',
     '/dashboard/alumni/event/past-event',
     '/dashboard/alumni/certificates',
+    '/dashboard/alumni/job-opportunity',
 
   ];
 
@@ -70,5 +71,6 @@ export const config = {
     '/dashboard/alumni/event/upcoming',
     '/dashboard/alumni/event/past-event',
     '/dashboard/alumni/certificates',
+    '/dashboard/alumni/job-opportunity',
   ]
 };

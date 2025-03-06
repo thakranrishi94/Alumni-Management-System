@@ -20,5 +20,10 @@
       "children": [
         { "name": "All Certificates", "link": "/dashboard/alumni/certificates" }
       ]
+    },{
+      "title": "Shared Job Opportunities",
+      "children": [
+        { "name": "All Shared Opportunities", "link": "/dashboard/alumni/job-opportunity" }
+      ]
     }
   ]

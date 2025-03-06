@@ -432,6 +432,8 @@ const CreateEventDialog = ({
       };
 
       const token = Cookies.get('ams_token');
+      console.log(token)
+
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/event`, eventData, {
         headers: {
           Authorization: `Bearer ${token}`
