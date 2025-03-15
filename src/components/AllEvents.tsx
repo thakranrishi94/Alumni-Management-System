@@ -18,18 +18,20 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, UserIcon, MapPinIcon, Clock3Icon, ExternalLinkIcon } from 'lucide-react';
+import { CalendarIcon, UserIcon, MapPinIcon, Clock3Icon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
+import axios from 'axios';
 
 interface EventType {
   id: string;
   title: string;
   description: string;
   fullDescription: string;
-  category: "academic" | "cultural" | "sports" | "workshop";
-  images: string[];
+  category: string; // Now will include "webinar", "workshop", "seminar", "lecture"
+  images: string[]; // Regular event images
+  brochure?: string; // Brochure image
   host: string;
   location: string;
   faculty: string;
@@ -38,110 +40,12 @@ interface EventType {
   featured: boolean;
 }
 
-// Using strings for dates to avoid hydration errors
-const eventData: EventType[] = [
-  {
-    id: "evt-001",
-    title: "Machine Learning Workshop",
-    description: "Hands-on ML workshop for beginners to advanced practitioners",
-    fullDescription: `Join us for a comprehensive Machine Learning workshop that covers everything from basic concepts to advanced techniques. 
-
-This full-day session will include:
-• Introduction to ML frameworks
-• Hands-on training with TensorFlow and PyTorch
-• Building and evaluating your first models
-• Real-world applications and case studies
-• Career opportunities in ML and AI
-
-All participants will receive certificates and access to online resources for continued learning. Lunch and refreshments will be provided.
-
-Prior coding experience is helpful but not required - we welcome students from all departments interested in the exciting world of machine learning!`,
-    category: "workshop",
-    images: ["/event/card1.jpg", "/event/card2.jpg"],
-    host: "Dr. Emma Chen",
-    location: "Computer Science Building, Room 302",
-    faculty: "Department of Computer Science",
-    date: "2025-03-15",
-    time: "10:00 AM - 4:00 PM",
-    featured: true
-  },
-  {
-    id: "evt-002",
-    title: "Spring Cultural Festival",
-    description: "Annual celebration of multicultural performances and cuisine",
-    fullDescription: "The Spring Cultural Festival returns with music, dance, art, and food from cultures around the world. Student organizations will showcase traditional performances and modern interpretations that highlight our diverse campus community. Don't miss the international food court featuring cuisines from over 20 countries, prepared by student chefs and local restaurants. This year's festival also includes interactive workshops where you can learn traditional crafts, dances, and musical techniques from expert instructors.",
-    category: "cultural",
-    images: ["/event/card1.jpg"],
-    host: "Cultural Affairs Committee",
-    location: "University Commons",
-    faculty: "Office of Student Life",
-    date: "2025-04-10",
-    time: "12:00 PM - 8:00 PM",
-    featured: true
-  },
-  {
-    id: "evt-003",
-    title: "Entrepreneurship Conference",
-    description: "Connecting students with industry leaders and startup founders",
-    fullDescription: "The annual Entrepreneurship Conference brings together successful founders, investors, and business leaders to inspire the next generation of innovators. Hear keynote speeches from industry pioneers, participate in networking sessions, and learn practical skills through targeted workshops. This year's conference focuses on sustainable business models, tech innovation, and social entrepreneurship. Selected student teams will have the opportunity to pitch their business ideas to a panel of investors, with the chance to win seed funding and mentorship opportunities.",
-    category: "academic",
-    images: ["/event/card2.jpg", "/event/card3.jpg"],
-    host: "Business Innovation Center",
-    location: "Business School Auditorium",
-    faculty: "School of Business",
-    date: "2025-03-28",
-    time: "9:00 AM - 5:00 PM",
-    featured: false
-  },
-  {
-    id: "evt-004",
-    title: "Intercollegiate Basketball Tournament",
-    description: "Championship games featuring top college teams from the region",
-    fullDescription: "The biggest basketball event of the academic year is here! Watch our university team compete against top-ranked colleges from across the region in this three-day tournament. The championship features both men's and women's divisions, with spectacular matchups guaranteed. Special halftime shows, giveaways, and concessions will keep the energy high throughout the event. Student tickets are discounted, and the first 200 attendees each day receive exclusive university merchandise. Come support our players and show your school spirit!",
-    category: "sports",
-    images: ["/event/card1.jpg"],
-    host: "Athletics Department",
-    location: "University Sports Complex",
-    faculty: "Department of Athletics",
-    date: "2025-05-05",
-    time: "6:00 PM - 9:00 PM",
-    featured: true
-  },
-  {
-    id: "evt-005",
-    title: "Research Symposium",
-    description: "Undergraduate and graduate research presentations across disciplines",
-    fullDescription: "The annual Research Symposium showcases outstanding student research from all academic departments. This two-day event features oral presentations, poster sessions, and panel discussions highlighting innovative approaches and findings. Faculty judges will select outstanding projects for special recognition and publication opportunities. The symposium provides valuable experience for students planning academic careers and creates connections between departments for interdisciplinary collaboration. Attendance is free and open to all university members and the general public.",
-    category: "academic",
-    images: ["/event/card2.jpg"],
-    host: "Office of Research",
-    location: "Multiple Campus Locations",
-    faculty: "Office of Academic Affairs",
-    date: "2025-04-20",
-    time: "10:00 AM - 6:00 PM",
-    featured: false
-  },
-  {
-    id: "evt-006",
-    title: "Design Thinking Workshop",
-    description: "Learn creative problem-solving methods from industry experts",
-    fullDescription: "This intensive Design Thinking Workshop will introduce participants to the methodology used by leading innovative companies worldwide. Through hands-on exercises and real-world case studies, you'll learn to approach complex problems with a user-centered perspective. The workshop covers the entire design thinking process: empathizing with users, defining problems, ideating solutions, prototyping concepts, and testing ideas. This workshop is valuable for students from all disciplines, as design thinking principles apply across fields from engineering to business to healthcare and beyond.",
-    category: "workshop",
-    images: ["/event/card3.jpg"],
-    host: "Prof. David Wong",
-    location: "Innovation Lab, Engineering Building",
-    faculty: "School of Design",
-    date: "2025-03-22",
-    time: "1:00 PM - 5:00 PM",
-    featured: false
-  }
-];
-
-const categoryColors = {
-  academic: "bg-blue-100 text-blue-800",
-  cultural: "bg-purple-100 text-purple-800",
-  sports: "bg-green-100 text-green-800",
-  workshop: "bg-amber-100 text-amber-800"
+// Updated categoryColors to use lowercase keys to match the data from backend
+const categoryColors: Record<string, string> = {
+  "webinar": "bg-blue-100 text-blue-800",
+  "workshop": "bg-amber-100 text-amber-800",
+  "seminar": "bg-purple-100 text-purple-800",
+  "lecture": "bg-emerald-100 text-emerald-800"
 };
 
 const formatDate = (dateString: string): string => {
@@ -177,19 +81,19 @@ const ClientOnlyEventCard: React.FC<{
       </Card>
     );
   }
-  
+  const displayImage = event.brochure || event.images[0];
   return (
     <Card className="h-full overflow-hidden flex flex-col transition-all hover:shadow-lg">
       <div className="relative w-full h-48 overflow-hidden">
         <Image 
-          src={event.images[0]} 
+          src={displayImage} 
           alt={event.title}
           className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
           fill
         />
         <div className="absolute top-3 right-3">
-          <Badge className={cn("text-xs font-medium py-1", categoryColors[event.category])}>
-            {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+          <Badge className={cn("text-xs font-medium py-1", categoryColors[event.category] || "bg-gray-100 text-gray-800")}>
+            {event.category}
           </Badge>
         </div>
         {event.featured && (
@@ -232,6 +136,95 @@ const ClientOnlyEventCard: React.FC<{
   );
 };
 
+// Image Slider Component
+const ImageSlider: React.FC<{
+  images: string[];
+  title: string;
+}> = ({ images, title }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const goToPrevious = () => {
+    const isFirstImage = currentIndex === 0;
+    const newIndex = isFirstImage ? images.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
+  };
+  
+  const goToNext = () => {
+    const isLastImage = currentIndex === images.length - 1;
+    const newIndex = isLastImage ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+  };
+  
+  const goToSpecificSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+  
+  if (images.length === 0) return null;
+  
+  // For 3 or fewer images, display them in a grid
+  if (images.length <= 3) {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        {images.map((image, index) => (
+          <div 
+            key={index} 
+            className="relative aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            <Image 
+              src={image} 
+              alt={`${title} image ${index + 1}`}
+              className="object-cover"
+              fill
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  // For more than 3 images, display as a slider
+  return (
+    <div className="relative w-full">
+      <div className="relative aspect-video rounded-md overflow-hidden">
+        <Image 
+          src={images[currentIndex]} 
+          alt={`${title} image ${currentIndex + 1}`}
+          className="object-cover"
+          fill
+        />
+      </div>
+      
+      {/* Navigation arrows */}
+      <button 
+        onClick={goToPrevious}
+        className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 focus:outline-none"
+      >
+        <ChevronLeftIcon size={20} />
+      </button>
+      
+      <button 
+        onClick={goToNext}
+        className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 focus:outline-none"
+      >
+        <ChevronRightIcon size={20} />
+      </button>
+      
+      {/* Thumbnail indicators */}
+      <div className="flex justify-center mt-2 gap-1">
+        {images.map((_, index) => (
+          <button 
+            key={index}
+            onClick={() => goToSpecificSlide(index)}
+            className={`h-2 rounded-full transition-all ${
+              index === currentIndex ? 'w-4 bg-gray-800' : 'w-2 bg-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Event Details Panel
 const EventDetailsPanel: React.FC<{
   event: EventType | null;
@@ -246,12 +239,18 @@ const EventDetailsPanel: React.FC<{
   
   if (!mounted || !event) return null;
   
+  // Use brochure image as banner if available, otherwise use the first image
+  const bannerImage = event.brochure || event.images[0];
+  
+  // Filter out the brochure from the images array for the image section
+  const displayImages = event.images;
+  
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0 overflow-y-auto">
         <div className="relative w-full h-56 sm:h-64 md:h-72">
           <Image 
-            src={event.images[0]} 
+            src={bannerImage} 
             alt={event.title}
             className="w-full h-full object-cover"
             fill
@@ -263,8 +262,8 @@ const EventDetailsPanel: React.FC<{
             </svg>
           </SheetClose>
           <div className="absolute bottom-4 left-4">
-            <Badge className={cn("text-sm py-1 px-3", categoryColors[event.category])}>
-              {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+            <Badge className={cn("text-sm py-1 px-3", categoryColors[event.category] || "bg-gray-100 text-gray-800")}>
+              {event.category}
             </Badge>
           </div>
         </div>
@@ -307,20 +306,20 @@ const EventDetailsPanel: React.FC<{
             </div>
           </div>
           
+          {/* Event Images Section - not showing brochure here */}
+          {displayImages.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-medium mb-3">Event Images</h3>
+              <ImageSlider images={displayImages} title={event.title} />
+            </div>
+          )}
+          
           <div className="mb-8">
             <h3 className="text-lg font-medium mb-3">About This Event</h3>
             <p className="text-gray-700 whitespace-pre-line">{event.fullDescription}</p>
           </div>
           
-          <div className="flex justify-between items-center gap-4">
-            <Button className="flex-1" variant="outline">
-              Add to Calendar
-            </Button>
-            <Button className="flex-1">
-              Register Now
-              <ExternalLinkIcon size={16} className="ml-2" />
-            </Button>
-          </div>
+          {/* Removed the buttons as requested */}
         </div>
       </SheetContent>
     </Sheet>
@@ -331,18 +330,68 @@ const AllEvents: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [eventData, setEventData] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Fetch events from the API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/post/all`);
+        setEventData(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError('Failed to load events. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEvents();
+  }, []);
   
   const handleEventClick = (event: EventType): void => {
     setSelectedEvent(event);
     setIsDetailOpen(true);
   };
   
+  // Changed the filter to convert activeCategory to lowercase for comparison
   const filteredEvents = activeCategory === "all" 
     ? eventData 
-    : eventData.filter(event => event.category === activeCategory);
+    : eventData.filter(event => event.category === activeCategory.toLowerCase());
   
   // Featured events for the hero section
   const featuredEvents = eventData.filter(event => event.featured);
+  
+  if (loading) {
+    return (
+      <section className="py-16 px-4 max-w-7xl mx-auto text-center">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+        </div>
+      </section>
+    );
+  }
+  
+  if (error) {
+    return (
+      <section className="py-16 px-4 max-w-7xl mx-auto text-center">
+        <div className="bg-red-50 p-6 rounded-lg">
+          <h3 className="text-red-800 text-lg font-medium">{error}</h3>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline" 
+            className="mt-4"
+          >
+            Try Again
+          </Button>
+        </div>
+      </section>
+    );
+  }
   
   return (
     <section className="py-16 px-4 max-w-7xl mx-auto">
@@ -364,7 +413,7 @@ const AllEvents: React.FC = () => {
       
       {/* All Events Section with Tabs */}
       <div>
-        <h2 className="text-3xl font-bold mb-8 text-center">Upcoming Events</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">Our Times With Alumni</h2>
         
         <Tabs defaultValue="all" className="mb-8">
           <div className="flex justify-center">
@@ -372,17 +421,17 @@ const AllEvents: React.FC = () => {
               <TabsTrigger value="all" onClick={() => setActiveCategory("all")}>
                 All Events
               </TabsTrigger>
-              <TabsTrigger value="academic" onClick={() => setActiveCategory("academic")}>
-                Academic
+              <TabsTrigger value="WEBINAR" onClick={() => setActiveCategory("WEBINAR")}>
+                Webinars
               </TabsTrigger>
-              <TabsTrigger value="cultural" onClick={() => setActiveCategory("cultural")}>
-                Cultural
-              </TabsTrigger>
-              <TabsTrigger value="sports" onClick={() => setActiveCategory("sports")}>
-                Sports
-              </TabsTrigger>
-              <TabsTrigger value="workshop" onClick={() => setActiveCategory("workshop")}>
+              <TabsTrigger value="WORKSHOP" onClick={() => setActiveCategory("WORKSHOP")}>
                 Workshops
+              </TabsTrigger>
+              <TabsTrigger value="SEMINAR" onClick={() => setActiveCategory("SEMINAR")}>
+                Seminars
+              </TabsTrigger>
+              <TabsTrigger value="LECTURE" onClick={() => setActiveCategory("LECTURE")}>
+                Lectures
               </TabsTrigger>
             </TabsList>
           </div>

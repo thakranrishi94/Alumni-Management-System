@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Search, Users, Calendar, Mail, Phone, User, Briefcase, Building, Linkedin, Twitter, Facebook, Instagram, Globe, FileText } from "lucide-react";
 import axios from "axios";

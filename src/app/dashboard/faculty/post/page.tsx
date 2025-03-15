@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -7,70 +8,40 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Calendar, User, BookOpen, FileText, Tag, Clock, Image, Plus, X } from "lucide-react";
+import { Calendar, User, FileText, Tag, Clock, Image,Menu } from "lucide-react";
+import Cookies from "js-cookie";
+import UpdatePost from "@/components/UpdatePost";
+import { Button } from "@/components/ui/button";
 
 // Define types for our data structures
 interface Post {
   id: number;
   title: string;
-  hostName: string;
-  facultyName: string;
-  eventName: string;
-  date: string;
-  time: string;
   description: string;
-  images?: string[];
+  startTime: string;
+  endTime: string;
+  location: string;
+  eventImages?: { url: string }[];
+  event: {
+    eventType: string;
+    eventDate: string;
+    faculty?: {
+      user?: {
+        name: string;
+      }
+    };
+    alumni?: {
+      user?: {
+        name: string;
+      }
+    }
+  }
 }
 
 interface Event {
   id: number;
   name: string;
 }
-
-// Sample data for static implementation
-const samplePosts: Post[] = [
-  {
-    id: 1,
-    title: "Introduction to React Workshop",
-    hostName: "John Doe",
-    facultyName: "Dr. Smith",
-    eventName: "WORKSHOP",
-    date: "2025-02-25",
-    time: "2025-02-25T14:30:00",
-    description: "Learning the basics of React framework and component design patterns."
-  },
-  {
-    id: 2,
-    title: "AI in Healthcare Seminar",
-    hostName: "Jane Smith",
-    facultyName: "Dr. Johnson",
-    eventName: "SEMINAR",
-    date: "2025-02-28",
-    time: "2025-02-28T10:00:00",
-    description: "Exploring the applications of artificial intelligence in modern healthcare."
-  },
-  {
-    id: 3,
-    title: "Career Development Webinar",
-    hostName: "Alex Williams",
-    facultyName: "Prof. Davis",
-    eventName: "WEBINAR",
-    date: "2025-03-05",
-    time: "2025-03-05T16:00:00",
-    description: "Tips and strategies for advancing your professional career."
-  }
-];
-
-// Sample events for dropdown
-const sampleEvents: Event[] = [
-  { id: 1, name: "WORKSHOP" },
-  { id: 2, name: "SEMINAR" },
-  { id: 3, name: "WEBINAR" },
-  { id: 4, name: "CONFERENCE" },
-  { id: 5, name: "HACKATHON" },
-  { id: 6, name: "MEETUP" },
-  { id: 7, name: "TRAINING" }
-];
 
 // Utility functions
 const formatDate = (dateString: string): string => {
@@ -91,286 +62,387 @@ const formatTime = (dateString: string): string => {
   return `${hours}:${minutes} ${ampm}`;
 };
 
+// Helper function to safely get name
+const getName = (post: Post, type: 'alumni' | 'faculty'): string => {
+  if (post.event[type]?.user?.name) {
+    return post.event[type].user.name;
+  }
+  return type === 'alumni' ? 'Admin' : 'Admin';
+};
+
 export default function PostListing() {
-  const [posts, setPosts] = useState<Post[]>(samplePosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [events, setEvents] = useState<Event[]>(sampleEvents);
-  
-  // New post form state - simplified
-  const [newPost, setNewPost] = useState({
-    id: 0, // Will be set when created
-    eventName: "",
-    description: "",
-    hostName: "Current User", // Placeholder, would come from auth in real implementation
-    images: [] as string[]
-  });
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
-  // Simulating an API call to fetch events
+  // Fetch posts when component mounts
   useEffect(() => {
-    // In a real application, you would fetch from your API here
-    // const fetchEvents = async () => {
-    //   try {
-    //     const response = await fetch('/api/events');
-    //     const data = await response.json();
-    //     setEvents(data);
-    //   } catch (error) {
-    //     console.error('Error fetching events:', error);
-    //   }
-    // };
-    // fetchEvents();
-
-    // For now, we'll just use our sample data
-    setEvents(sampleEvents);
+    fetchPosts();
+    fetchEventTypes();
+    
+    // Check screen size to set initial view mode
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('card');
+      } else {
+        setViewMode('table');
+      }
+    };
+    
+    // Set initial view mode
+    handleResize();
+    
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      const token = Cookies.get('ams_token');
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/post/get-faculty-post`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setPosts(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      setError('Failed to load posts. Please try again later.');
+      setIsLoading(false);
+    }
+  };
+
+  const fetchEventTypes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/post/event/types`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching event types:', error);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, post: Post) => {
+    e.stopPropagation(); // Prevent the row click event from firing
+    setSelectedPost(post);
+    setIsUpdateDialogOpen(true);
+  };
 
   const handleRowClick = (post: Post) => {
     setSelectedPost(post);
     setIsDialogOpen(true);
   };
 
-  const handleCreatePost = () => {
-    // Here you would normally send data to your API
-    // For static implementation, we'll just add to the local state
-    const newId = Math.max(...posts.map(post => post.id)) + 1;
-    const createdPost = {
-      ...newPost,
-      id: newId,
-      title: newPost.eventName, // Use event name as title or set a default
-      facultyName: "", // Set default or remove if not needed
-      date: new Date().toISOString().split('T')[0], // Current date
-      time: new Date().toISOString().slice(0, 16) // Current time
-    } as Post;
-    
-    setPosts([...posts, createdPost]);
-    setIsCreateDialogOpen(false);
-    setNewPost({
-      id: 0,
-      eventName: "",
-      description: "",
-      hostName: "Current User",
-      images: []
-    });
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'table' ? 'card' : 'table');
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // In a real implementation, you would handle file uploads
-    // For now, we'll just store the file names
-    if (e.target.files) {
-      const fileNames = Array.from(e.target.files).map(file => file.name);
-      setNewPost({
-        ...newPost,
-        images: [...(newPost.images || []), ...fileNames]
-      });
+  const filteredPosts = posts.filter(post => {
+    const alumniName = getName(post, 'alumni').toLowerCase();
+    const facultyName = getName(post, 'faculty').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return post.title.toLowerCase().includes(query) ||
+      alumniName.includes(query) ||
+      facultyName.includes(query) ||
+      post.event.eventType.toLowerCase().includes(query);
+  });
+
+  // Get initials for card view
+  const getInitials = (title: string) => {
+    const words = title
+      .replace(/[&.]/g, ' ')
+      .split(" ")
+      .filter(word => word.length > 0);
+
+    if (words.length > 3) {
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+
+    return words
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  const getEventTypeColor = (eventType: string) => {
+    switch (eventType) {
+      case "WEBINAR": return "bg-blue-100 text-blue-800";
+      case "WORKSHOP": return "bg-green-100 text-green-800";
+      case "SEMINAR": return "bg-purple-100 text-purple-800";
+      case "LECTURE": return "bg-red-100 text-red-800";
+      default: return "bg-yellow-100 text-yellow-800";
     }
   };
 
-  const removeImage = (index: number) => {
-    const updatedImages = [...(newPost.images || [])];
-    updatedImages.splice(index, 1);
-    setNewPost({
-      ...newPost,
-      images: updatedImages
-    });
-  };
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading posts...</div>;
+  }
 
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.hostName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.facultyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.eventName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  if (error) {
+    return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
+  }
 
   return (
-    <div className="bg-gray-100 w-full">
-      <main className="flex-1 p-8 overflow-auto">
-        <div className="flex justify-between items-center mb-6">
+    <div className="bg-gray-100 w-full min-h-screen">
+      <main className="flex-1 p-4 md:p-8 overflow-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold ml-5 md:ml-0">Posts</h1>
-            <p className="text-gray-600">Manage Posts</p>
+            <h1 className="text-xl md:text-2xl font-bold">Your Posts</h1>
+            <p className="text-gray-600 text-sm md:text-base">View and manage your posts</p>
           </div>
-          <button 
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-            Create New Post
-          </button>
+          <div className="mt-4 md:mt-0 flex items-center">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleViewMode}
+              className="flex items-center gap-2 ml-2"
+            >
+              <Menu className="h-4 w-4" />
+              {viewMode === 'table' ? 'Card View' : 'Table View'}
+            </Button>
+          </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4 md:mt-6">
           <input
             type="text"
-            placeholder="Search posts by title, host, faculty, or event type"
-            className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
+            placeholder="Search posts by title, host, or event type"
+            className="w-full p-2 md:p-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-200 text-sm md:text-base"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-blue-500" />
-                      <span>Title</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-green-500" />
-                      <span>Host</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <BookOpen className="h-4 w-4 text-purple-500" />
-                      <span>Faculty</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <Tag className="h-4 w-4 text-red-500" />
-                      <span>Event Type</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-blue-500" />
-                      <span>Date</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-gray-700 font-semibold">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-indigo-500" />
-                      <span>Time</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPosts.map((post, index) => (
-                  <tr
-                    key={post.id}
-                    onClick={() => handleRowClick(post)}
-                    className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-gray-100 transition-colors cursor-pointer`}
-                  >
-                    <td className="p-3 text-gray-700">{post.title}</td>
-                    <td className="p-3 text-gray-700">{post.hostName}</td>
-                    <td className="p-3 text-gray-700">{post.facultyName}</td>
-                    <td className="p-3 text-gray-700">
-                      <span className={`px-2 py-1 text-sm rounded-full ${
-                        post.eventName === "WEBINAR" ? "bg-blue-100 text-blue-800" :
-                        post.eventName === "WORKSHOP" ? "bg-green-100 text-green-800" :
-                        post.eventName === "SEMINAR" ? "bg-purple-100 text-purple-800" :
-                        post.eventName === "HACKATHON" ? "bg-red-100 text-red-800" :
-                        post.eventName === "MEETUP" ? "bg-orange-100 text-orange-800" :
-                        post.eventName === "TRAINING" ? "bg-indigo-100 text-indigo-800" :
-                        "bg-yellow-100 text-yellow-800"
-                      }`}>
-                        {post.eventName}
-                      </span>
-                    </td>
-                    <td className="p-3 text-gray-700">{formatDate(post.date)}</td>
-                    <td className="p-3 text-gray-700">{formatTime(post.time)}</td>
+        <div className="mt-6 md:mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
+          {filteredPosts.length === 0 ? (
+            <div className="p-6 md:p-8 text-center text-gray-500">
+              No posts found. Posts from your events will appear here.
+            </div>
+          ) : viewMode === 'table' ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs md:text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2 md:p-3 text-left text-gray-700 font-semibold">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <FileText className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
+                        <span>Title</span>
+                      </div>
+                    </th>
+                    <th className="p-2 md:p-3 text-left text-gray-700 font-semibold hidden sm:table-cell">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <User className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
+                        <span>Host</span>
+                      </div>
+                    </th>
+                    <th className="p-2 md:p-3 text-left text-gray-700 font-semibold hidden md:table-cell">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <User className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
+                        <span>Faculty</span>
+                      </div>
+                    </th>
+                    <th className="p-2 md:p-3 text-left text-gray-700 font-semibold">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <Tag className="h-3 w-3 md:h-4 md:w-4 text-red-500" />
+                        <span>Type</span>
+                      </div>
+                    </th>
+                    <th className="p-2 md:p-3 text-left text-gray-700 font-semibold hidden sm:table-cell">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <Calendar className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
+                        <span>Date</span>
+                      </div>
+                    </th>
+                    <th className="p-2 md:p-3 text-left text-gray-700 font-semibold">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <Clock className="h-3 w-3 md:h-4 md:w-4 text-indigo-500" />
+                        <span>Time</span>
+                      </div>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredPosts.map((post, index) => (
+                    <tr
+                      key={post.id}
+                      onClick={() => handleRowClick(post)}
+                      className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-gray-100 transition-colors cursor-pointer`}
+                    >
+                      <td className="p-2 md:p-3 text-gray-700 truncate max-w-[150px] md:max-w-none">{post.title}</td>
+                      <td className="p-2 md:p-3 text-gray-700 hidden sm:table-cell">{getName(post, 'alumni')}</td>
+                      <td className="p-2 md:p-3 text-gray-700 hidden md:table-cell">{getName(post, 'faculty')}</td>
+                      <td className="p-2 md:p-3 text-gray-700">
+                        <span className={`px-1 py-0.5 md:px-2 md:py-1 text-xs md:text-sm rounded-full ${getEventTypeColor(post.event.eventType)}`}>
+                          {post.event.eventType}
+                        </span>
+                      </td>
+                      <td className="p-2 md:p-3 text-gray-700 hidden sm:table-cell">{formatDate(post.event.eventDate)}</td>
+                      <td className="p-2 md:p-3 text-gray-700">{formatTime(post.startTime)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+              {filteredPosts.map((post) => (
+                <div 
+                  key={post.id}
+                  onClick={() => handleRowClick(post)}
+                  className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 cursor-pointer border border-gray-100"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                      {getInitials(post.title)}
+                    </div>
+                    <div className="overflow-hidden">
+                      <h3 className="text-md font-semibold truncate">{post.title}</h3>
+                      <div className="mt-1">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getEventTypeColor(post.event.eventType)}`}>
+                          {post.event.eventType}
+                        </span>
+                      </div>
+                      <div className="mt-3 text-xs text-gray-600 grid grid-cols-2 gap-x-2 gap-y-1">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDate(post.event.eventDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{formatTime(post.startTime)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 col-span-2 truncate">
+                          <User className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{getName(post, 'alumni')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* View Post Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Post Details</DialogTitle>
-              <DialogDescription>View post information</DialogDescription>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold">Post Details</DialogTitle>
+                  <DialogDescription>View post information</DialogDescription>
+                </div>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDialogOpen(false);
+                    setIsUpdateDialogOpen(true);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 self-start sm:self-auto"
+                >
+                  <FileText className="h-4 w-4" />
+                  Edit Post
+                </Button>
+              </div>
             </DialogHeader>
             {selectedPost && (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-6">
-                  <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-2xl">
-                    {(() => {
-                      const words = selectedPost.title
-                        .replace(/[&.]/g, ' ')
-                        .split(" ")
-                        .filter(word => word.length > 0);
-
-                      if (words.length > 3) {
-                        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-                      }
-
-                      return words
-                        .map(word => word[0])
-                        .join('')
-                        .toUpperCase();
-                    })()}
+              <div className="space-y-6 p-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-xl sm:text-2xl flex-shrink-0 mx-auto sm:mx-0">
+                    {getInitials(selectedPost.title)}
                   </div>
 
-                  <div>
-                    <h2 className="text-2xl font-bold">{selectedPost.title}</h2>
-                    <p className="text-gray-600">{selectedPost.eventName}</p>
+                  <div className="text-center sm:text-left">
+                    <h2 className="text-xl sm:text-2xl font-bold">{selectedPost.title}</h2>
+                    <p className="text-gray-600">{selectedPost.event.eventType}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-blue-100 rounded-full">
-                      <User className="h-5 w-5 text-blue-500" />
+                    <div className="p-2 sm:p-3 bg-blue-100 rounded-full">
+                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Host</p>
-                      <p className="font-medium">{selectedPost.hostName}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Host</p>
+                      <p className="text-sm sm:text-base font-medium">{getName(selectedPost, 'faculty')}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-green-100 rounded-full">
-                      <BookOpen className="h-5 w-5 text-green-500" />
+                    <div className="p-2 sm:p-3 bg-green-100 rounded-full">
+                      <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Faculty</p>
-                      <p className="font-medium">{selectedPost.facultyName}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Event Type</p>
+                      <p className="text-sm sm:text-base font-medium">{selectedPost.event.eventType}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-purple-100 rounded-full">
-                      <Calendar className="h-5 w-5 text-purple-500" />
+                    <div className="p-2 sm:p-3 bg-purple-100 rounded-full">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Date</p>
-                      <p className="font-medium">{formatDate(selectedPost.date)}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Date</p>
+                      <p className="text-sm sm:text-base font-medium">{formatDate(selectedPost.startTime)}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-yellow-100 rounded-full">
-                      <Clock className="h-5 w-5 text-yellow-500" />
+                    <div className="p-2 sm:p-3 bg-yellow-100 rounded-full">
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Time</p>
-                      <p className="font-medium">{formatTime(selectedPost.time)}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Time</p>
+                      <p className="text-sm sm:text-base font-medium">{formatTime(selectedPost.startTime)} - {formatTime(selectedPost.endTime)}</p>
                     </div>
                   </div>
                 </div>
 
-                {selectedPost.images && selectedPost.images.length > 0 && (
-                  <div className="space-y-4">
+                {selectedPost.eventImages && selectedPost.eventImages.length > 0 && (
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-start space-x-4">
-                      <div className="p-3 bg-indigo-100 rounded-full">
-                        <Image className="h-5 w-5 text-indigo-500" />
+                      <div className="p-2 sm:p-3 bg-indigo-100 rounded-full">
+                        <Image className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Images</p>
-                        <div className="grid grid-cols-3 gap-2 mt-2">
-                          {selectedPost.images.map((image, index) => (
-                            <div key={index} className="h-20 bg-gray-200 rounded flex items-center justify-center">
-                              <p className="text-xs text-gray-500 p-2 truncate">{image}</p>
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600">Images</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                          {selectedPost.eventImages.map((image, index) => (
+                            <div key={index} className="h-16 sm:h-20 bg-gray-200 rounded flex items-center justify-center overflow-hidden">
+                              <img
+                                src={image.url}
+                                alt={`Event image ${index + 1}`}
+                                className="h-full w-full object-cover rounded"
+                              />
                             </div>
                           ))}
                         </div>
@@ -379,14 +451,14 @@ export default function PostListing() {
                   </div>
                 )}
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="flex items-start space-x-4">
-                    <div className="p-3 bg-purple-100 rounded-full">
-                      <FileText className="h-5 w-5 text-purple-500" />
+                    <div className="p-2 sm:p-3 bg-purple-100 rounded-full">
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Description</p>
-                      <p className="font-medium">{selectedPost.description}</p>
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm text-gray-600">Description</p>
+                      <p className="text-sm sm:text-base">{selectedPost.description}</p>
                     </div>
                   </div>
                 </div>
@@ -395,113 +467,16 @@ export default function PostListing() {
           </DialogContent>
         </Dialog>
 
-        {/* Create New Post Dialog - Simplified */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-  <DialogContent className="sm:max-w-lg md:max-w-2xl w-11/12 p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle className="text-xl sm:text-2xl font-bold">Create New Post</DialogTitle>
-      <DialogDescription className="text-sm sm:text-base">Fill in the details to create a new post</DialogDescription>
-    </DialogHeader>
-    
-    <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
-      {/* Event Name Dropdown */}
-      <div className="space-y-1 sm:space-y-2">
-        <label className="text-xs sm:text-sm font-medium text-gray-700">Event Name</label>
-        <select
-          className="w-full p-2 text-sm sm:text-base border rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-          value={newPost.eventName}
-          onChange={(e) => setNewPost({...newPost, eventName: e.target.value})}
-          required
-        >
-          <option value="">Select Event Type</option>
-          {events.map(event => (
-            <option key={event.id} value={event.name}>{event.name}</option>
-          ))}
-        </select>
-      </div>
-      
-      {/* Enhanced Image Upload */}
-      <div className="space-y-1 sm:space-y-2">
-        <label className="text-xs sm:text-sm font-medium text-gray-700">Gallery Images</label>
-        <div className="flex flex-col space-y-2">
-          <input
-            type="file"
-            multiple
-            className="hidden"
-            id="images"
-            onChange={handleImageUpload}
-            accept="image/*"
-          />
-          <label
-            htmlFor="images"
-            className="cursor-pointer bg-gray-100 border-2 border-dashed border-gray-300 rounded-md p-3 sm:p-6 text-center hover:bg-gray-50 transition-colors"
-          >
-            <Image className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-gray-400" />
-            <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">Click to upload multiple images</p>
-            <p className="text-xs text-gray-400">(Max 5 images recommended)</p>
-          </label>
-          
-          {/* Preview of uploaded images with delete functionality */}
-          {newPost.images && newPost.images.length > 0 && (
-            <div className="mt-2 sm:mt-4">
-              <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">Selected images ({newPost.images.length}):</p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-                {newPost.images.map((image, index) => (
-                  <div key={index} className="relative group bg-gray-100 p-2 sm:p-3 rounded">
-                    <p className="text-xs truncate pr-6">{image}</p>
-                    <button 
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-red-100 hover:bg-red-200 text-red-500 rounded-full p-1 transition-colors"
-                      type="button"
-                      aria-label="Remove image"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Description */}
-      <div className="space-y-1 sm:space-y-2">
-        <label className="text-xs sm:text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          className="w-full p-2 sm:p-3 border rounded-md focus:outline-none focus:ring focus:ring-blue-200 min-h-24 sm:min-h-32 resize-y text-sm sm:text-base"
-          placeholder="Enter detailed description of the post..."
-          value={newPost.description}
-          onChange={(e) => setNewPost({...newPost, description: e.target.value})}
-          rows={4}
-        ></textarea>
-        <p className="text-xs text-gray-500">
-          {newPost.description.length}/500 characters 
-          {newPost.description.length > 500 && 
-            <span className="text-red-500"> (exceeds maximum)</span>
-          }
-        </p>
-      </div>
-      
-      {/* Action Buttons */}
-      <div className="flex justify-end space-x-2 sm:space-x-3 pt-2 sm:pt-4">
-        <button
-          onClick={() => setIsCreateDialogOpen(false)}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border rounded-md text-gray-700 hover:bg-gray-50 text-sm sm:text-base"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleCreatePost}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base"
-          disabled={!newPost.eventName || newPost.description.length > 500}
-        >
-          Create Post
-        </button>
-      </div>
-    </div>
-  </DialogContent>
-</Dialog>
+        {/* Update Post Dialog */}
+        <UpdatePost
+          post={selectedPost}
+          isOpen={isUpdateDialogOpen}
+          onClose={() => setIsUpdateDialogOpen(false)}
+          onSuccess={() => {
+            fetchPosts();
+            setIsUpdateDialogOpen(false);
+          }}
+        />
       </main>
     </div>
   );
