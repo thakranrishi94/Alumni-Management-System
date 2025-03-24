@@ -31,8 +31,11 @@ interface AlumniData {
   organization: string;
   skills: string;
   image: string | null;
+  linkedin: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  bio: string | null;
 }
-
 const AlumniSideBar = ({ children, sidebarMenus, title }: SideBarProps) => {
   const pathname = usePathname();
   const router = useRouter();

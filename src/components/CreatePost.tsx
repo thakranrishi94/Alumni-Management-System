@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { X, Upload, Clock, MapPin, AlignLeft, Image, Calendar } from "lucide-react";
+import { X, Upload, Clock, MapPin, AlignLeft, Image as ImageIcon, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import Image from 'next/image';
 
 interface CreatePostProps {
   eventId: string;
@@ -58,7 +59,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-  // Reset form when dialog opens
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -75,23 +75,19 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
     }
   }, [isOpen, eventTitle]);
 
-  // Validate the form data
   const validateForm = (): ValidationErrors => {
     const newErrors: ValidationErrors = {};
 
-    // Description validation
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
     } else if (formData.description.trim().length < 10) {
       newErrors.description = "Description must be at least 10 characters";
     }
 
-    // Location validation
     if (!formData.location.trim()) {
       newErrors.location = "Location is required";
     }
 
-    // Time validation
     if (!formData.startTime) {
       newErrors.startTime = "Start time is required";
     }
@@ -100,7 +96,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
       newErrors.endTime = "End time is required";
     }
 
-    // Compare times if both exist
     if (formData.startTime && formData.endTime) {
       const start = new Date(`2000-01-01T${formData.startTime}`);
       const end = new Date(`2000-01-01T${formData.endTime}`);
@@ -110,7 +105,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
       }
     }
 
-    // Event images validation
     if (formData.eventImages.length === 0) {
       newErrors.eventImages = "At least one event image is required";
     }
@@ -127,12 +121,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
   };
 
   const validateFile = (file: File, allowedTypes: string[]): string | null => {
-    // Check file size
     if (file.size > MAX_FILE_SIZE) {
       return `File "${file.name}" exceeds maximum size of 10MB`;
     }
     
-    // Check file type
     if (!allowedTypes.includes(file.type)) {
       return `File "${file.name}" must be a valid type (${allowedTypes.join(", ")})`;
     }
@@ -231,13 +223,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validate all fields
     const validationErrors = validateForm();
     setErrors(validationErrors);
     
-    // Check if there are any validation errors
     if (Object.keys(validationErrors).length > 0) {
-      // Show the first error in toast
       const firstError = Object.values(validationErrors)[0];
       toast({
         title: "Validation Error",
@@ -277,12 +266,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
         postFormData.append("attendance", formData.attendance);
       }
 
-      // Add each image separately to match the EventImage model structure
       formData.eventImages.forEach((image) => {
         postFormData.append("eventImages", image);
       });
 
-      const response = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/post/create-post`,
         postFormData,
         {
@@ -300,11 +288,17 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
       });
 
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to create event post:", error);
+      let errorMessage = "Failed to create event post";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create event post",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -327,7 +321,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-6 px-2">
           <div className="grid grid-cols-1 gap-6">
-            {/* Title Field - Disabled */}
             <div className="relative">
               <label htmlFor="title" className="flex items-center text-sm font-medium text-gray-700 mb-1 gap-1">
                 <AlignLeft className="h-4 w-4 text-blue-500" />
@@ -346,7 +339,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
               <p className="mt-1 text-xs text-gray-500">Event title cannot be modified</p>
             </div>
 
-            {/* Description Field */}
             <div className="relative">
               <label htmlFor="description" className="flex items-center text-sm font-medium text-gray-700 mb-1 gap-1">
                 <AlignLeft className="h-4 w-4 text-blue-500" />
@@ -368,7 +360,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
               )}
             </div>
 
-            {/* Location Field */}
             <div className="relative">
               <label htmlFor="location" className="flex items-center text-sm font-medium text-gray-700 mb-1 gap-1">
                 <MapPin className="h-4 w-4 text-blue-500" />
@@ -390,7 +381,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
               )}
             </div>
 
-            {/* Time Only Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="relative">
                 <label htmlFor="startTime" className="flex items-center text-sm font-medium text-gray-700 mb-1 gap-1">
@@ -433,10 +423,9 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
               </div>
             </div>
 
-            {/* Brochure Image Field */}
             <div className="relative bg-white p-5 rounded-lg shadow-sm border border-gray-100">
               <label htmlFor="brochureImage" className="flex items-center text-sm font-medium text-gray-700 mb-3 gap-1">
-                <Image className="h-4 w-4 text-blue-500" />
+                <ImageIcon className="h-4 w-4 text-blue-500" />
                 <span>Brochure Image (Optional)</span>
               </label>
               
@@ -467,9 +456,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
                 <div className="mt-1 relative bg-blue-50 rounded-md p-3 border border-blue-200">
                   <div className="flex items-center">
                     <div className="h-16 w-16 overflow-hidden rounded-md mr-3 border border-blue-300">
-                      <img
+                      <Image
                         src={URL.createObjectURL(formData.brochureImage)}
                         alt="Brochure preview"
+                        width={64}
+                        height={64}
                         className="h-full w-full object-cover"
                       />
                     </div>
@@ -489,12 +480,9 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
               )}
             </div>
 
-            
-
-            {/* Event Images Field */}
             <div className="relative bg-white p-5 rounded-lg shadow-sm border border-gray-100">
               <label htmlFor="eventImages" className="flex items-center text-sm font-medium text-gray-700 mb-3 gap-1">
-                <Image className="h-4 w-4 text-blue-500" />
+                <ImageIcon className="h-4 w-4 text-blue-500" />
                 <span>Event Images</span>
                 <span className="text-red-500">*</span>
               </label>
@@ -535,9 +523,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
                     {formData.eventImages.map((image, index) => (
                       <div key={index} className="relative group">
                         <div className="aspect-square w-full rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all">
-                          <img
+                          <Image
                             src={URL.createObjectURL(image)}
-                            alt={`Preview ${index}`}
+                            alt={`Event image ${index}`}
+                            width={100}
+                            height={100}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -562,14 +552,14 @@ const CreatePost: React.FC<CreatePostProps> = ({ eventId, eventTitle, isOpen, se
                 <p className="mt-1 text-sm text-red-500">{errors.eventImages}</p>
               )}
             </div>
-            {/* Additional File Field */}
+
             <div className="relative bg-white p-5 rounded-lg shadow-sm border border-gray-100">
               <label htmlFor="attendance" className="flex items-center text-sm font-medium text-gray-700 mb-3 gap-1">
                 <Upload className="h-4 w-4 text-blue-500" />
                 <span>Attendance File (PDF)</span>
               </label>
               
-              {!formData.attendance? (
+              {!formData.attendance ? (
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-blue-200 rounded-md hover:border-blue-400 transition-colors bg-blue-50">
                   <div className="space-y-2 text-center">
                     <Upload className="mx-auto h-12 w-12 text-blue-400" />

@@ -51,9 +51,10 @@ export default function Header() {
 
     const navLinks = [
         { href: "/", label: "Home" },
-        { href: "/events", label: "Events" },
-        { href: "/gallery", label: "Gallery" },
-        { href: "/about-us", label: "About Us" },
+        { href: "/events", label: "Events"},
+        { href: "/gallery", label: "Gallery"},
+        { href: "/about-us", label: "About Us"},
+        { href: "/job-opportunities", label: "Carrer"},
     ];
 
     const handleLogout = () => {
@@ -95,7 +96,9 @@ export default function Header() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`relative text-sm font-medium hover:text-blue-600 transition-colors pb-1 ${isActive ? 'text-blue-600' : 'text-gray-900'}`}
+                                    className={`relative text-sm font-medium hover:text-blue-600 transition-colors pb-1 ${
+        pathname === link.href ? 'text-blue-600' : 'text-gray-900'
+    }`}
                                 >
                                     {link.label}
                                     {isActive ? (

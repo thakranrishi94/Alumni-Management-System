@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, User, BookOpen, FileText, Tag, Clock, Image, X, Plus, FileIcon } from "lucide-react";
+import { FileText, Image as ImageIcon, X, Plus } from "lucide-react";
 import { format, parse, isValid } from "date-fns";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
+import Image from "next/image"; // Import Next.js Image component
 
-interface PostData {
+// Updated interface with all required fields from the imported post
+interface Post {
   id: number;
   title: string;
   description: string;
@@ -30,13 +32,13 @@ interface PostData {
     id?: number;
     eventType: string;
     eventDate: string;
-    faculty: {
-      user: {
+    faculty?: {
+      user?: {
         name: string;
       }
     };
-    alumni: {
-      user: {
+    alumni?: {
+      user?: {
         name: string;
       }
     }
@@ -44,7 +46,7 @@ interface PostData {
 }
 
 interface UpdatePostProps {
-  post: any;
+  post: Post | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -138,6 +140,8 @@ const UpdatePost: React.FC<UpdatePostProps> = ({ post, isOpen, onClose, onSucces
     }
 
     // Parse times for comparison
+    if (!post) return false;
+    
     const eventDate = post.event.eventDate ? new Date(post.event.eventDate) : new Date();
     const formattedDate = format(eventDate, "yyyy-MM-dd");
     
@@ -433,11 +437,25 @@ const UpdatePost: React.FC<UpdatePostProps> = ({ post, isOpen, onClose, onSucces
               <div className="mt-2">
                 {(existingBrochure || brochureImage) ? (
                   <div className="relative w-full h-40 sm:h-48 bg-gray-100 rounded flex items-center justify-center overflow-hidden border">
-                    <img
-                      src={brochureImage ? URL.createObjectURL(brochureImage) : existingBrochure || ''}
-                      alt="Brochure"
-                      className="h-full w-full object-contain"
-                    />
+                    {brochureImage ? (
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={URL.createObjectURL(brochureImage)}
+                          alt="Brochure preview"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : existingBrochure ? (
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={existingBrochure}
+                          alt="Existing brochure"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleRemoveBrochure}
@@ -449,7 +467,7 @@ const UpdatePost: React.FC<UpdatePostProps> = ({ post, isOpen, onClose, onSucces
                 ) : (
                   <label className="flex flex-col items-center justify-center w-full h-32 sm:h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Image className="w-8 h-8 text-gray-400 mb-2" />
+                      <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
                       <p className="text-sm text-gray-500">
                         <span className="font-semibold">Click to upload brochure image</span>
                       </p>
@@ -507,11 +525,14 @@ const UpdatePost: React.FC<UpdatePostProps> = ({ post, isOpen, onClose, onSucces
               <div className={`grid ${getImageGridCols()} gap-2 sm:gap-3 mt-2`}>
                 {images.map((image, index) => (
                   <div key={`image-${index}-${Date.now()}`} className="relative h-16 sm:h-20 md:h-24 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
-                    <img
-                      src={image.url}
-                      alt={`Event image ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={image.url}
+                        alt={`Event image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(index)}

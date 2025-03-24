@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,7 +79,7 @@ export default function JobOpportunitiesAdminPanel() {
     };
 
     fetchJobOpportunities();
-  }, [toast]);
+  }, [toast, token]);
 
   // Search functionality
   useEffect(() => {
@@ -97,7 +96,7 @@ export default function JobOpportunitiesAdminPanel() {
     try {
       setUpdateLoading(true);
       
-      const response = await axios.put(
+      await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/job/job-opportunities/${jobId}/status`,
         { requestStatus: status },{
           headers:{

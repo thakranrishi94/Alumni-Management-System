@@ -8,10 +8,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Calendar, User, FileText, Tag, Clock, Image,Menu } from "lucide-react";
+import { Calendar, User, FileText, Tag, Clock, Image as ImageIcon, Menu } from "lucide-react";
 import Cookies from "js-cookie";
 import UpdatePost from "@/components/UpdatePost";
 import { Button } from "@/components/ui/button";
+import Image from "next/image"; // Import Next.js Image component
 
 // Define types for our data structures
 interface Post {
@@ -36,11 +37,6 @@ interface Post {
       }
     }
   }
-}
-
-interface Event {
-  id: number;
-  name: string;
 }
 
 // Utility functions
@@ -75,7 +71,6 @@ export default function PostListing() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState<boolean>(false);
@@ -84,7 +79,6 @@ export default function PostListing() {
   // Fetch posts when component mounts
   useEffect(() => {
     fetchPosts();
-    fetchEventTypes();
     
     // Check screen size to set initial view mode
     const handleResize = () => {
@@ -126,31 +120,6 @@ export default function PostListing() {
       setError('Failed to load posts. Please try again later.');
       setIsLoading(false);
     }
-  };
-
-  const fetchEventTypes = async () => {
-    try {
-      const token = localStorage.getItem('token');
-
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/post/event/types`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setEvents(response.data);
-    } catch (error) {
-      console.error('Error fetching event types:', error);
-    }
-  };
-
-  const handleEditClick = (e: React.MouseEvent, post: Post) => {
-    e.stopPropagation(); // Prevent the row click event from firing
-    setSelectedPost(post);
-    setIsUpdateDialogOpen(true);
   };
 
   const handleRowClick = (post: Post) => {
@@ -431,16 +400,18 @@ export default function PostListing() {
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-start space-x-4">
                       <div className="p-2 sm:p-3 bg-indigo-100 rounded-full">
-                        <Image className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+                        <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
                       </div>
                       <div className="flex-1">
                         <p className="text-xs sm:text-sm text-gray-600">Images</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                           {selectedPost.eventImages.map((image, index) => (
                             <div key={index} className="h-16 sm:h-20 bg-gray-200 rounded flex items-center justify-center overflow-hidden">
-                              <img
+                              <Image
                                 src={image.url}
                                 alt={`Event image ${index + 1}`}
+                                width={100}
+                                height={100}
                                 className="h-full w-full object-cover rounded"
                               />
                             </div>

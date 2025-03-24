@@ -464,7 +464,7 @@ export default function PastEvents() {
             )}
             {selectedEvent && (
               <CreatePost
-                eventId={selectedEvent.eventRequestId}
+                eventId={selectedEvent.eventRequestId.toString()}
                 eventTitle={selectedEvent.eventTitle}
                 isOpen={isCreatePostOpen}
                 setIsOpen={setIsCreatePostOpen}
