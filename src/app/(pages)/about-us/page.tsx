@@ -2,20 +2,20 @@
 import React from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useTypewriter, Cursor } from 'react-simple-typewriter';
+// import { useTypewriter } from 'react-simple-typewriter';
 import Link from 'next/link';
 
 export default function AlumniAboutPage() {
-  const [typewriterText] = useTypewriter({
-    words: [
-      'Building Global Leaders',
-      'Creating Innovators',
-      'Fostering Excellence',
-      'Connecting Generations'
-    ],
-    loop: true,
-    delaySpeed: 2000,
-  });
+  // const [typewriterText] = useTypewriter({
+  //   words: [
+  //     'Building Global Leaders',
+  //     'Creating Innovators',
+  //     'Fostering Excellence',
+  //     'Connecting Generations'
+  //   ],
+  //   loop: true,
+  //   delaySpeed: 2000,
+  // });
 
   return (
     <div className="min-h-screen bg-white">
