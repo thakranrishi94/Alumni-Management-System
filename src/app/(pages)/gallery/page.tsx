@@ -22,15 +22,15 @@ export default function AlumniGallery() {
 
   // Sample alumni data with placeholder images
   const alumni: AlumniType[] = [
-    { id: 1, name: 'Sarah Johnson', year: 2018, field: 'Computer Science', image: '/gallery/gallery.jpg' },
-    { id: 2, name: 'Michael Chen', year: 2019, field: 'Business', image: '/gallery/gallery.jpg' },
-    { id: 3, name: 'Priya Patel', year: 2020, field: 'Engineering', image: '/gallery/gallery.jpg' },
-    { id: 4, name: 'James Wilson', year: 2018, field: 'Medicine', image: '/gallery/gallery.jpg' },
-    { id: 5, name: 'Emma Rodriguez', year: 2021, field: 'Arts', image: '/gallery/gallery.jpg' },
-    { id: 6, name: 'David Kim', year: 2019, field: 'Engineering', image: '/gallery/gallery.jpg' },
-    { id: 7, name: 'Olivia Taylor', year: 2020, field: 'Computer Science', image: '/gallery/gallery.jpg' },
-    { id: 8, name: 'Robert Garcia', year: 2021, field: 'Business', image: '/gallery/gallery.jpg' },
-    { id: 9, name: 'Robert Garcia', year: 2021, field: 'Business', image: '/gallery/gallery.jpg' }
+    { id: 1, name: 'Sarah Johnson', year: 2021, field: 'Computer Science', image: '/gallery/gallery.jpg' },
+    { id: 2, name: 'Michael Chen', year: 2022, field: 'Business', image: '/gallery/gallery.jpg' },
+    { id: 3, name: 'Priya Patel', year: 2023, field: 'Engineering', image: '/gallery/gallery.jpg' },
+    { id: 4, name: 'James Wilson', year: 2021, field: 'Medicine', image: '/gallery/gallery.jpg' },
+    { id: 5, name: 'Emma Rodriguez', year: 2024, field: 'Arts', image: '/gallery/gallery.jpg' },
+    { id: 6, name: 'David Kim', year: 2022, field: 'Engineering', image: '/gallery/gallery.jpg' },
+    { id: 7, name: 'Olivia Taylor', year: 2023, field: 'Computer Science', image: '/gallery/gallery.jpg' },
+    { id: 8, name: 'Robert Garcia', year: 2024, field: 'Business', image: '/gallery/gallery.jpg' },
+    { id: 9, name: 'Robert Garcia', year: 2024, field: 'Business', image: '/gallery/gallery.jpg' }
   ];
 
   // Filter alumni based on activeFilter
@@ -91,7 +91,7 @@ export default function AlumniGallery() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative h-96 overflow-hidden">
+      {/* <section className="relative h-96 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 to-purple-800 opacity-90"></div>
         <Image 
           src="/gallery/gallery.jpg" 
@@ -106,7 +106,7 @@ export default function AlumniGallery() {
             Celebrating the success stories of those who shaped our legacy
           </p>
         </div>
-      </section>
+      </section> */}
 
       {/* Gallery Section */}
       <section className="py-16 bg-gray-100">
@@ -206,7 +206,7 @@ export default function AlumniGallery() {
           <div className="relative">
             <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200"></div>
 
-            {[2018, 2019, 2020, 2021].map((year, idx) => (
+            {[2021, 2022, 2023, 2024].map((year, idx) => (
               <div key={year} className={`relative z-10 flex items-center mb-12 ${idx % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
                 <div className={`w-full md:w-5/12 ${idx % 2 === 0 ? 'pr-8 md:text-right' : 'pl-8'}`}>
                   <div className="bg-gradient-to-br from-white to-gray-100 p-6 rounded-lg shadow-md border border-gray-200">

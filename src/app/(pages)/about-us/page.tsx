@@ -25,7 +25,7 @@ export default function AlumniAboutPage() {
       </Head>
 
       {/* Hero Section */}
-      <div className="relative h-96 bg-blue-700 overflow-hidden">
+      {/* <div className="relative h-96 bg-blue-700 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
             src="/gallery/gallery.jpg"
@@ -44,7 +44,7 @@ export default function AlumniAboutPage() {
             <Cursor cursorColor="#f7fafc" />
           </h2>
         </div>
-      </div>
+      </div> */}
 
       {/* About Alumni Section */}
       <section className="py-16 bg-white">

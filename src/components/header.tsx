@@ -13,6 +13,23 @@ export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
+    // 🧠 Dynamic Title Logic
+    useEffect(() => {
+        const routeToTitleMap: Record<string, string> = {
+            "/": "Home | KRMU Alumni Portal",
+            "/events": "Events | KRMU Alumni Portal",
+            "/gallery": "Gallery | KRMU Alumni Portal",
+            "/about-us": "About Us | KRMU Alumni Portal",
+            "/job-opportunities": "Career | KRMU Alumni Portal",
+            "/login": "Login | KRMU Alumni Portal",
+            "/signup": "Register | KRMU Alumni Portal",
+
+        };
+
+        const matchedTitle = routeToTitleMap[pathname] || "KRMU Alumni Portal";
+        document.title = matchedTitle;
+    }, [pathname]);
+
     useEffect(() => {
         const token = Cookies.get('ams_token');
         const role = Cookies.get('ams_user_role');
@@ -54,7 +71,7 @@ export default function Header() {
         { href: "/events", label: "Events"},
         { href: "/gallery", label: "Gallery"},
         { href: "/about-us", label: "About Us"},
-        { href: "/job-opportunities", label: "Carrer"},
+        { href: "/job-opportunities", label: "Career"},
     ];
 
     const handleLogout = () => {
@@ -97,15 +114,13 @@ export default function Header() {
                                     key={link.href}
                                     href={link.href}
                                     className={`relative text-sm font-medium hover:text-blue-600 transition-colors pb-1 ${
-        pathname === link.href ? 'text-blue-600' : 'text-gray-900'
-    }`}
+                                        isActive ? 'text-blue-600' : 'text-gray-900'
+                                    }`}
                                 >
                                     {link.label}
                                     {isActive ? (
-                                        // Active link - simple underline
                                         <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
                                     ) : (
-                                        // Inactive link - animated underline on hover
                                         <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
                                     )}
                                 </Link>
@@ -162,10 +177,8 @@ export default function Header() {
                                         >
                                             {link.label}
                                             {isActive ? (
-                                                // Active link - simple underline
                                                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"></span>
                                             ) : (
-                                                // Inactive link - animated underline on hover
                                                 <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
                                             )}
                                         </Link>

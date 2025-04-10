@@ -214,17 +214,17 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                  { label: "Full Name", name: "name", type: "text"},
-                  { label: "Email Address", name: "email", type: "email" },
-                  { label: "Phone Number", name: "phone", type: "tel" },
-                  { label: "Batch Year", name: "batch", type: "text" },
-                  { label: "Programme", name: "course", type: "text" },
-                  { label: "Current Organization/College", name: "organization", type: "text" },
-                  { label: "Designation/Course", name: "designation", type: "text" },
-                  { label: "Skills", name: "skills", type: "text" },
-                  { label: "Password", name: "password", type: "password" },
-                  { label: "Confirm Password", name: "confirmPassword", type: "password" },
-                ].map(({ label, name, type }) => (
+                  { label: "Full Name", name: "name", type: "text", placeholder: "e.g. John Doe" },
+                  { label: "Email Address", name: "email", type: "email", placeholder: "e.g. john@example.com" },
+                  { label: "Phone Number", name: "phone", type: "tel", placeholder: "10-digit mobile number" },
+                  { label: "Batch Year", name: "batch", type: "text", placeholder: "e.g. 2022" },
+                  { label: "Programme", name: "course", type: "text", placeholder: "e.g. B.Tech CSE" },
+                  { label: "Current Organization/College", name: "organization", type: "text", placeholder: "e.g. Google" },
+                  { label: "Designation/Course", name: "designation", type: "text", placeholder: "e.g. Software Engineer" },
+                  { label: "Skills", name: "skills", type: "text", placeholder: "e.g. React, Node.js" },
+                  { label: "Password", name: "password", type: "password", placeholder: "Create a password" },
+                  { label: "Confirm Password", name: "confirmPassword", type: "password", placeholder: "Re-enter your password" },
+                ].map(({ label, name, type,placeholder }) => (
                   <div key={name}>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {label}
@@ -232,6 +232,7 @@ export default function SignupPage() {
                     <input
                       type={type}
                       name={name}
+                      placeholder={placeholder}
                       value={formData[name as keyof FormDataType]}
                       onChange={handleChange}
                       className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
