@@ -137,9 +137,39 @@ export default function JobOpportunities() {
   const getDaysRemaining = (deadlineDate: string): number => {
     const today = new Date();
     const deadline = new Date(deadlineDate);
-    const diffTime = Math.abs(deadline.getTime() - today.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    const diffTime = deadline.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Get application status badge
+  const getApplicationStatus = (deadlineDate: string) => {
+    const daysRemaining = getDaysRemaining(deadlineDate);
+    
+    if (daysRemaining < 0) {
+      return (
+        <div className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-600 font-medium">
+          Closed
+        </div>
+      );
+    } else if (daysRemaining === 0) {
+      return (
+        <div className="bg-orange-50 px-2 py-1 rounded-full text-xs text-orange-600 font-medium">
+          Closes today
+        </div>
+      );
+    } else if (daysRemaining <= 3) {
+      return (
+        <div className="bg-red-50 px-2 py-1 rounded-full text-xs text-red-600 font-medium">
+          {daysRemaining} days left
+        </div>
+      );
+    } else {
+      return (
+        <div className="bg-green-50 px-2 py-1 rounded-full text-xs text-green-600 font-medium">
+          {daysRemaining} days left
+        </div>
+      );
+    }
   };
 
   // Handle job selection and modal open
@@ -255,9 +285,7 @@ export default function JobOpportunities() {
                   </CardContent>
                   
                   <CardFooter className="flex justify-between items-center border-t pt-3">
-                    <div className="bg-red-50 px-2 py-1 rounded-full text-xs text-red-600 font-medium">
-                      {getDaysRemaining(job.lastDateToApply)} days left
-                    </div>
+                    {getApplicationStatus(job.lastDateToApply)}
                     
                     <Button 
                       variant="outline" 
@@ -315,6 +343,9 @@ export default function JobOpportunities() {
                 </p>
                 <p>
                   <span className="font-medium">Deadline:</span> {format(new Date(selectedJob.lastDateToApply), 'MMM dd, yyyy')}
+                  {getDaysRemaining(selectedJob.lastDateToApply) < 0 && (
+                    <span className="ml-2 text-gray-600 font-medium">(Closed)</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -324,7 +355,7 @@ export default function JobOpportunities() {
                 Close
               </Button>
               
-              {selectedJob.applicationLink && (
+              {selectedJob.applicationLink && getDaysRemaining(selectedJob.lastDateToApply) >= 0 && (
                 <a 
                   href={selectedJob.applicationLink}
                   target="_blank" 
