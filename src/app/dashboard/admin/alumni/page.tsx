@@ -241,7 +241,7 @@ export default function AlumniPage() {
                 <th className="p-4 text-left">Grad Year</th>
                 <th className="p-4 text-left">Phone</th>
                 <th className="p-4 text-left">Course</th>
-                <th className="p-4 text-left">School</th>
+                <th className="p-4 text-left">Organization</th>
                 <th className="p-4 text-left">Status</th>
               </tr>
             </thead>
