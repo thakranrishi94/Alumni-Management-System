@@ -62,10 +62,7 @@ export default function LoginPage() {
       );
       
       if (response.data.user) {
-        // const expiryDays = rememberMe ? 7 : 1;
-        
-        // Cookies.set('ams_user_role', response.data.user.role, { expires: expiryDays });
-        // Cookies.set('ams_token', response.data.token, { expires: expiryDays });
+       
         Cookies.set('ams_user_role', response.data.user.role);
         Cookies.set('ams_token', response.data.token);
 
