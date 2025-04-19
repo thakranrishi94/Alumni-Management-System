@@ -42,6 +42,7 @@ export default function AlumniConsentForm({
   const [alumni, setAlumni] = useState<Alumni[]>([]);
   const [selectedAlumniId, setSelectedAlumniId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state for button loading
   const { toast } = useToast();
 
   // Form states
@@ -96,6 +97,8 @@ export default function AlumniConsentForm({
   // Handle form submission
   const handleCreateEvent = async () => {
     try {
+      setIsSubmitting(true); // Set submitting state to true when starting
+
       // Validation checks
       if (!selectedAlumniId) {
         toast({
@@ -103,6 +106,7 @@ export default function AlumniConsentForm({
           description: "Please select an alumni",
           variant: "destructive",
         });
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
@@ -126,6 +130,7 @@ export default function AlumniConsentForm({
             description: `${fieldName} is required`,
             variant: "destructive",
           });
+          setIsSubmitting(false); // Reset submitting state
           return;
         }
       }
@@ -137,6 +142,7 @@ export default function AlumniConsentForm({
           description: "Please select a date",
           variant: "destructive",
         });
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
@@ -148,6 +154,7 @@ export default function AlumniConsentForm({
           description: "Please enter a valid time in HH:MM format",
           variant: "destructive",
         });
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
@@ -158,6 +165,7 @@ export default function AlumniConsentForm({
           description: "Please specify duration in hours or minutes (e.g., '2 hours' or '30 minutes')",
           variant: "destructive",
         });
+        setIsSubmitting(false); // Reset submitting state
         return;
       }
 
@@ -206,6 +214,8 @@ export default function AlumniConsentForm({
         description: "Failed to create alumni event",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false); // Reset submitting state regardless of outcome
     }
   };
 
@@ -224,7 +234,7 @@ export default function AlumniConsentForm({
             <Select
               value={selectedAlumniId?.toString() || ""}
               onValueChange={(value) => setSelectedAlumniId(Number(value))}
-              disabled={loading}
+              disabled={loading || isSubmitting}
             >
               <SelectTrigger className="w-full mt-1 text-sm sm:text-base">
                 <SelectValue placeholder={loading ? "Loading alumni..." : "Select an alumni"} />
@@ -251,6 +261,7 @@ export default function AlumniConsentForm({
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
                 className="w-full mt-1 text-sm sm:text-base"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -259,6 +270,7 @@ export default function AlumniConsentForm({
               <Select
                 value={eventType}
                 onValueChange={(value: EventType) => setEventType(value)}
+                disabled={isSubmitting}
                 required
               >
                 <SelectTrigger className="w-full mt-1 text-sm sm:text-base">
@@ -285,6 +297,7 @@ export default function AlumniConsentForm({
                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
                 className="w-full mt-1 text-sm sm:text-base"
                 min={format(new Date(), 'yyyy-MM-dd')}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -296,6 +309,7 @@ export default function AlumniConsentForm({
                 value={eventTime}
                 onChange={(e) => setEventTime(e.target.value)}
                 className="w-full mt-1 text-sm sm:text-base"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -311,6 +325,7 @@ export default function AlumniConsentForm({
                 onChange={(e) => setEventDuration(e.target.value)}
                 placeholder="e.g., 2 hours"
                 className="w-full mt-1 text-sm sm:text-base"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -321,6 +336,7 @@ export default function AlumniConsentForm({
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
                 className="w-full mt-1 text-sm sm:text-base"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -335,6 +351,7 @@ export default function AlumniConsentForm({
                 value={eventDescription}
                 onChange={(e) => setEventDescription(e.target.value)}
                 className="w-full mt-1 text-sm sm:text-base"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -345,6 +362,7 @@ export default function AlumniConsentForm({
                 value={eventAgenda}
                 onChange={(e) => setEventAgenda(e.target.value)}
                 className="w-full mt-1 text-sm sm:text-base"
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -358,6 +376,7 @@ export default function AlumniConsentForm({
               value={specialRequirements}
               onChange={(e) => setSpecialRequirements(e.target.value)}
               className="w-full mt-1 text-sm sm:text-base"
+              disabled={isSubmitting}
               required
             />
           </div>
@@ -368,14 +387,16 @@ export default function AlumniConsentForm({
               onClick={onClose}
               variant="outline"
               className="border-gray-300 text-xs sm:text-sm py-1 h-8 sm:h-10"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateEvent}
               className="bg-blue-600 hover:bg-blue-500 text-xs sm:text-sm py-1 h-8 sm:h-10"
+              disabled={isSubmitting}
             >
-              Create Alumni Event
+              {isSubmitting ? "Creating..." : "Create Alumni Event"}
             </Button>
           </div>
         </div>

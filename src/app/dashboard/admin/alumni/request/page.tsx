@@ -26,6 +26,8 @@ export default function AlumniRequest() {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [alumni, setAlumni] = useState<AlumniData[]>([]);
   const [filteredAlumni, setFilteredAlumni] = useState<AlumniData[]>([]);
+  const [isApproving, setIsApproving] = useState<boolean>(false);
+  const [isRejecting, setIsRejecting] = useState<boolean>(false);
 
   // Calculate request counts using useMemo
   const requestCounts = useMemo(() => {
@@ -116,14 +118,29 @@ export default function AlumniRequest() {
         return;
       }
 
+      // Set loading state
+      if (requestStatus === 'APPROVED') {
+        setIsApproving(true);
+      } else {
+        setIsRejecting(true);
+      }
+
       await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/alumni/update-status/${selectedAlumni.id}`, {
         requestStatus: requestStatus,
       });
 
+      // Reset loading state
+      setIsApproving(false);
+      setIsRejecting(false);
+      
       setIsDialogOpen(false);
       getAllumniDetails();
     } catch (error) {
       console.error("Error updating status:", error);
+      
+      // Reset loading state on error
+      setIsApproving(false);
+      setIsRejecting(false);
     }
   };
 
@@ -346,29 +363,35 @@ export default function AlumniRequest() {
                   <p>Last updated: {selectedAlumni.updatedAt}</p>
                 </div>
 
-                {/* Buttons for Approve/Reject */}
+                {/* Buttons for Approve/Reject with Loading States */}
                 <div className="flex space-x-4 mt-4">
                   <button
-                    className={`w-full p-3 rounded-lg ${selectedAlumni.requestStatus === 'APPROVED'
+                    className={`w-full p-3 rounded-lg ${
+                      selectedAlumni.requestStatus === 'APPROVED'
                         ? 'bg-green-300 cursor-not-allowed'
+                        : isApproving
+                        ? 'bg-green-400'
                         : 'bg-green-500 hover:bg-green-600'
-                      } text-white transition-colors duration-200`}
+                    } text-white transition-colors duration-200 flex items-center justify-center`}
                     title="Approve"
                     onClick={() => handleStatusChange('APPROVED')}
-                    disabled={selectedAlumni.requestStatus === 'APPROVED'}
+                    disabled={selectedAlumni.requestStatus === 'APPROVED' || isApproving || isRejecting}
                   >
-                    Approve
+                    {isApproving ? 'Approving...' : 'Approve'}
                   </button>
                   <button
-                    className={`w-full p-3 rounded-lg ${selectedAlumni.requestStatus === 'REJECTED'
+                    className={`w-full p-3 rounded-lg ${
+                      selectedAlumni.requestStatus === 'REJECTED'
                         ? 'bg-red-300 cursor-not-allowed'
+                        : isRejecting
+                        ? 'bg-red-400'
                         : 'bg-red-500 hover:bg-red-600'
-                      } text-white transition-colors duration-200`}
+                    } text-white transition-colors duration-200 flex items-center justify-center`}
                     title="Reject"
                     onClick={() => handleStatusChange('REJECTED')}
-                    disabled={selectedAlumni.requestStatus === 'REJECTED'}
+                    disabled={selectedAlumni.requestStatus === 'REJECTED' || isApproving || isRejecting}
                   >
-                    Reject
+                    {isRejecting ? 'Rejecting...' : 'Reject'}
                   </button>
                 </div>
               </div>
